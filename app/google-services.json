@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "285294100496",
+    "firebase_url": "https://laboum-176101.firebaseio.com",
+    "project_id": "laboum-176101",
+    "storage_bucket": "laboum-176101.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:285294100496:android:9ca16b496bb5b81c",
+        "android_client_info": {
+          "package_name": "com.example.doublejk.laboum"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "285294100496-0s05qjdlt4sopsdmnkdi1o5qet6hb94s.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "285294100496-lv80fklu2jpdct2rjljc7k19duj1p5g2.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "285294100496-gra5b8s23b8rqecinu5knlkjjevd28cp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.doublejk.laboum",
+            "certificate_hash": "0f67df64d3c07fc7cda0af0b9f13ba05962fd2b7"
+          }
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBwqHpHu9AwlEfiIVKcJ4rsBWOfgP6WmB0"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
