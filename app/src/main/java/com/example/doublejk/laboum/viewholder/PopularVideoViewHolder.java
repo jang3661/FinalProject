@@ -115,7 +115,7 @@ public class PopularVideoViewHolder extends RecyclerView.ViewHolder implements V
             case R.id.popular_linear:{
                 if (!v.isSelected()) {
                     Log.d("클릭", "" + getAdapterPosition());
-                    itemView.setBackgroundColor(Color.rgb(238, 238, 238));
+                    itemView.setBackgroundColor(Color.rgb(160, 160, 160));
                     selectedMusicProvider.selectedList(position, searchItems.get(position));
                     selectedItems.add(new SelectItem(itemView, v));
                     v.setSelected(true);

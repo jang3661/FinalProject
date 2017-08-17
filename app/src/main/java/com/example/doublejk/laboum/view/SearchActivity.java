@@ -2,6 +2,7 @@ package com.example.doublejk.laboum.view;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Point;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -10,6 +11,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Display;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -27,9 +29,11 @@ import com.example.doublejk.laboum.retrofit.RetroCallback;
 import com.example.doublejk.laboum.retrofit.RetroClient;
 import com.example.doublejk.laboum.retrofit.SearchItem;
 import com.example.doublejk.laboum.util.UrlToColor;
+import com.example.doublejk.laboum.util.ViewAnimation;
+import com.google.gson.Gson;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 public class SearchActivity extends AppCompatActivity implements View.OnClickListener{
     private RecyclerView recyclerView;
@@ -40,7 +44,7 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
     private RetroClient retroClient;
     private EditText searchEdit;
     private InputMethodManager imm;
-    private HashMap<Integer, SearchItem> musicMap;
+    private LinkedHashMap<Integer, SearchItem> musicMap;
     private LinearLayout selectingLayout;
     private Button resetBtn, playBtn;
     private  ArrayList<SearchItem> searchItems;
@@ -49,6 +53,8 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
+
+        getWindowSize();
 
         //키보드 내리기
         imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -68,7 +74,9 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
         playBtn = (Button) findViewById(R.id.search_playBtn);
         resetBtn.setOnClickListener(this);
         playBtn.setOnClickListener(this);
-        musicMap = new HashMap<Integer, SearchItem>();
+        musicMap = new LinkedHashMap<>();
+
+        getWindowSize();
 
         retroClient = RetroClient.getInstance(this).createBaseApi();
 
@@ -86,13 +94,13 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
             }
         });
     }
-
     SelectedMusicProvider selectedMusicProvider = new SelectedMusicProvider() {
         @Override
         public void selectedList(int pos, SearchItem searchItem) {
             Log.d("selected","호출");
-            if(selectingLayout.getVisibility() == View.GONE)
-                selectingLayout.setVisibility(View.VISIBLE);
+            if(musicMap.size() == 0) {
+                ViewAnimation.riseUp(selectingLayout);
+            }
             musicMap.put(pos, searchItem);
         }
 
@@ -101,11 +109,17 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
             Log.d("unselected","호출");
             musicMap.remove(pos);
             if(musicMap.size() == 0)
-                selectingLayout.setVisibility(View.GONE);
+                 ViewAnimation.dropDwon(selectingLayout);
         }
     };
+    public void getWindowSize() {
+        Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        ViewAnimation.initPos(selectingLayout, size.y);
+    }
 
-    void showSearchList() {
+    public void showSearchList() {
         Toast.makeText(this, "GET 1 Clicked", Toast.LENGTH_SHORT).show();
         retroClient.getSearch(searchEdit.getText().toString(),API_KEY ,20, new RetroCallback() {
             @Override
@@ -126,7 +140,7 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
                 recyclerAdapter.setItemClick(new SearchRecyclerAdapter.ItemClickListner() {
                     @Override
                     public void onItemClickListener(ArrayList<SearchItem> items, int position) {
-                        Intent intent = new Intent(getApplicationContext(), PlaylistActivity.class);
+                        Intent intent = new Intent(getApplicationContext(), PlayerActivity.class);
                         intent.putExtra("videoId", items.get(position).getVideoId());
                         startActivity(intent);
                         //타이틀도 보내자
@@ -165,7 +179,6 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
         protected void onPostExecute(ArrayList<SearchItem> items) {
             super.onPostExecute(items);
             searchItems = items;
-            homeRecyclerAdapter.notifyDataSetChanged();
             Log.d("ㅇㅇ", "성공");
         }
     }
@@ -178,11 +191,13 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
                 musicMap.clear();
                 break;
             case R.id.search_playBtn:
-                Intent intent = new Intent(getApplicationContext(), PlaylistActivity.class);
-                intent.putExtra("musicInfo", musicMap);
+                Gson gson = new Gson();
+                String musicList = gson.toJson(musicMap);
+                Intent intent = new Intent(getApplicationContext(), PlayerActivity.class);
+                intent.putExtra("musicInfo", musicList);
                 startActivity(intent); //parcel 시리얼라이즈
                 homeRecyclerAdapter.resetMusicList();
-                selectingLayout.setVisibility(View.GONE);
+                ViewAnimation.dropDwon(selectingLayout);
                 musicMap.clear();
                 break;
         }

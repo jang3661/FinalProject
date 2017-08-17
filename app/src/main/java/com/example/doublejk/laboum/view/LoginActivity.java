@@ -93,7 +93,9 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                 String personId = account.getId();
                 Uri personPhoto = account.getPhotoUrl();
                 firebaseAuthWithGoogle(account);
-                info.setText(personName + " " + personGivenName + " " +personFamilyName + " " + personEmail + " " + personId + " " + personPhoto);
+                info.setText(personName + "\n" + personGivenName + "\n" +personFamilyName + " \n"
+                        + personEmail + "\n" + personId + "\n" + personPhoto + "\n" + account.getGrantedScopes() + "\n" + account.getServerAuthCode()
+                + "\n" + account.getIdToken());
                 Log.d("aaaa", "Success");
             } else {
                 // Google Sign In failed, update UI appropriately

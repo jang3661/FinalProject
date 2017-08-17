@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/player_linear"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.doublejk.laboum.view.PlayerActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+
+        <com.google.android.youtube.player.YouTubePlayerView
+            android:id="@+id/youtube_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="6"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:text="플레이리스트 이름"
+                    android:textColor="#FFF"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:text="사용자 이름"
+                    android:textColor="#FFF"/>
+            </LinearLayout>
+
+            <Switch
+                android:id="@+id/share_switch"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"/>
+            <ImageButton
+                android:id="@+id/fullscreenBtn"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:src="@drawable/fullscreenbtn"
+                android:scaleType="fitCenter"
+                android:background="#00FF0000"/>
+
+        </LinearLayout>
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/player_recyclerview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clipToPadding="false"
+            app:layoutManager="android.support.v7.widget.LinearLayoutManager">
+
+        </android.support.v7.widget.RecyclerView>
+
+        <LinearLayout
+            android:id="@+id/player_divider"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:orientation="vertical"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="vertical"
+        android:paddingBottom="10dp"
+        android:background="#303030">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+            <TextView
+                android:id="@+id/currentTimeTv"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="#FFF"/>
+            <SeekBar
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="6"/>
+            <TextView
+                android:id="@+id/durationMillisTv"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="#FFF"/>
+
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@null"/>
+
+            <ImageButton
+                android:id="@+id/previousBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/previousbtn"
+                android:scaleType="fitCenter"
+                android:background="@null"/>
+
+            <ImageButton
+                android:id="@+id/playBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/pausebtn"
+                android:scaleType="fitCenter"
+                android:background="@null"/>
+
+            <ImageButton
+                android:id="@+id/nextBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/nextbtn"
+                android:scaleType="fitCenter"
+                android:background="@null"/>
+
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@null"/>
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

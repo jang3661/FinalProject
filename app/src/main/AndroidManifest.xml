@@ -21,8 +21,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".view.LoginActivity" />
-        <activity android:name=".view.PlaylistActivity">
+        <activity android:name=".view.LoginActivity" >
+
+        </activity>
+        <activity android:name=".view.PlayerActivity"
+            android:configChanges="orientation|screenSize">
         </activity>
         <activity
             android:name=".view.SearchActivity"

@@ -3,9 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     tools:context="com.example.doublejk.laboum.view.HomeFragment">
-
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/popular_recyclerview"
@@ -14,27 +12,36 @@
         android:clipToPadding="false"
         android:paddingBottom="50dp"
         android:background="#303030">
-
     </android.support.v7.widget.RecyclerView>
+
     <LinearLayout
         android:id="@+id/selectLinear"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:orientation="horizontal"
-        android:background="#000">
+        android:background="#FFF">
 
         <Button
             android:id="@+id/resetBtn"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="선택해제" />
 
         <Button
             android:id="@+id/playBtn"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="선택재생" />
+
+        <Button
+            android:id="@+id/saveMusic"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="담    기" />
     </LinearLayout>
 
 

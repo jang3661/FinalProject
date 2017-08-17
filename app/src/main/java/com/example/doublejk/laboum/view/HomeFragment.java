@@ -1,15 +1,14 @@
 package com.example.doublejk.laboum.view;
 
-import android.animation.ObjectAnimator;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.content.res.Resources;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v7.graphics.Palette;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.ActionMenuView;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
@@ -19,9 +18,7 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AccelerateInterpolator;
 import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -29,7 +26,6 @@ import android.widget.Toast;
 import com.example.doublejk.laboum.adapter.HomeRecyclerAdapter;
 import com.example.doublejk.laboum.R;
 import com.example.doublejk.laboum.SelectedMusicProvider;
-import com.example.doublejk.laboum.model.PaletteColor;
 import com.example.doublejk.laboum.retrofit.RetroCallback;
 import com.example.doublejk.laboum.retrofit.RetroClient;
 import com.example.doublejk.laboum.retrofit.SearchItem;
@@ -37,14 +33,8 @@ import com.example.doublejk.laboum.util.UrlToColor;
 import com.example.doublejk.laboum.util.ViewAnimation;
 import com.google.gson.Gson;
 
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.Map;
 
 public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemClickListener,
         View.OnClickListener{
@@ -53,7 +43,7 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
     private RetroClient retroClient;
     private RecyclerView recyclerView;
     private LinkedHashMap<Integer, SearchItem> musicMap;
-    private Button resetBtn, playBtn;
+    private Button resetBtn, playBtn, saveMusicBtn;
     private LinearLayout selectingLayout;
     private LinearLayoutManager linearLayoutManager;
     private HomeRecyclerAdapter homeRecyclerAdapter;
@@ -88,8 +78,10 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
         selectingLayout = (LinearLayout) view.findViewById(R.id.selectLinear);
         resetBtn = (Button) view.findViewById(R.id.resetBtn);
         playBtn = (Button) view.findViewById(R.id.playBtn);
+        saveMusicBtn = (Button) view.findViewById(R.id.saveMusic);
         resetBtn.setOnClickListener(this);
         playBtn.setOnClickListener(this);
+        saveMusicBtn.setOnClickListener(this);
         musicMap = new LinkedHashMap<>();
 
         getPopularSearch();
@@ -151,7 +143,7 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
 /*                recyclerAdapter.setItemClick(new SearchRecyclerAdapter.ItemClickListner() {
                     @Override
                     public void onItemClickListener(ArrayList<SearchItem> items, int position) {
-                        Intent intent = new Intent(getApplicationContext(), PlaylistActivity.class);
+                        Intent intent = new Intent(getApplicationContext(), PlayerActivity.class);
                         intent.putExtra("videoId", items.get(position).getVideoId());
                         startActivity(intent);
                         //타이틀도 보내자
@@ -199,12 +191,14 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
             case R.id.resetBtn:
                 //클릭한 배경색 초기화, selected false
                 homeRecyclerAdapter.resetMusicList();
+                ViewAnimation.dropDwon(selectingLayout);
+                ViewAnimation.riseUp(((MainActivity) getActivity()).getTabLayout());
                 musicMap.clear();
                 break;
             case R.id.playBtn:
                 Gson gson = new Gson();
                 String musicList = gson.toJson(musicMap);
-                Intent intent = new Intent(getActivity(), PlaylistActivity.class);
+                Intent intent = new Intent(getActivity(), PlayerActivity.class);
                 intent.putExtra("musicInfo", musicList);
                 startActivity(intent); //parcel 시리얼라이즈
                 homeRecyclerAdapter.resetMusicList();
@@ -212,6 +206,17 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
                 ViewAnimation.riseUp(((MainActivity) getActivity()).getTabLayout());
                 musicMap.clear();
                 break;
+            case R.id.saveMusic:
+                String[] items = {"Basic Playlist", "재생목록 추가"};
+                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.Theme_AppCompat_DayNight_Dialog);
+                builder.setTitle("재생목록")
+                        .setItems(items, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+
+                            }
+                        });
+                AlertDialog alertDialog = builder.create();
+                alertDialog.show();
         }
     }
     @Override
@@ -279,6 +284,8 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
     @Override
     public void onPause() {
         super.onPause();
+/*        ViewAnimation.dropDwon(selectingLayout);
+        ViewAnimation.riseUp(((MainActivity) getActivity()).getTabLayout());*/
         Log.d("onPause", "ㅇㅇ");
     }
 

@@ -27,4 +27,9 @@ public class ViewAnimation {
         animator.setInterpolator(new AccelerateInterpolator());
         animator.start();
     }
+
+    public static void initPos(View view, int pos) {
+        ObjectAnimator animator = ObjectAnimator.ofFloat(view, "y", pos, pos);
+        animator.start();
+    }
 }

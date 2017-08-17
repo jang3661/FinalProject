@@ -44,7 +44,6 @@ public class PlaylistRecyclerAdapter extends RecyclerView.Adapter<PlaylistViewHo
 
     @Override
     public void onBindViewHolder(final PlaylistViewHolder holder, int position) {
-        Log.d("온바인드뷰", "ㅇ");
         Glide.with(context).load(searchItems.get(position).getImgUrl()).fitCenter().into(holder.getMusicImg());
         Glide.with(context).load(R.drawable.optionmenu).fitCenter().into(holder.getMusicSettingBtn());
         holder.getMusicTitle().setText(searchItems.get(position).getTitle());

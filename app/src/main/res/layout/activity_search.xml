@@ -15,7 +15,7 @@
         <EditText
             android:id="@+id/search_edit"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
             android:textColor="#FFFFFF"
             android:background="#333333"
@@ -23,33 +23,38 @@
             android:inputType="text"/>
     </android.support.v7.widget.Toolbar>
 
-    <LinearLayout
-        android:id="@+id/search_selectLinear"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:background="#303030"
-        android:visibility="gone">
+        android:layout_height="match_parent">
 
-        <Button
-            android:id="@+id/search_resetBtn"
-            android:layout_width="wrap_content"
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/search_recyclerview"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="선택해제" />
+            android:clipToPadding="false"
+            android:background="#303030">
+        </android.support.v7.widget.RecyclerView>
 
-        <Button
-            android:id="@+id/search_playBtn"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/search_selectLinear"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="선택재생" />
-    </LinearLayout>
+            android:layout_gravity="bottom"
+            android:orientation="horizontal"
+            android:background="#303030">
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/search_recyclerview"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:background="#303030">
-    </android.support.v7.widget.RecyclerView>
+            <Button
+                android:id="@+id/search_resetBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="선택해제" />
+
+            <Button
+                android:id="@+id/search_playBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="선택재생" />
+        </LinearLayout>
+    </FrameLayout>
 
 </LinearLayout>
