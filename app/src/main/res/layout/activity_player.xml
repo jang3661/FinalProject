@@ -86,6 +86,8 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:orientation="vertical"
+        android:paddingRight="16dp"
+        android:paddingLeft="16dp"
         android:paddingBottom="10dp"
         android:background="#303030">
         <LinearLayout
@@ -95,19 +97,20 @@
             android:gravity="center">
             <TextView
                 android:id="@+id/currentTimeTv"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:textSize="12sp"
                 android:textColor="#FFF"/>
             <SeekBar
-                android:layout_width="0dp"
+                android:id="@+id/seekbar"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="6"/>
+                android:layout_weight="1"/>
             <TextView
-                android:id="@+id/durationMillisTv"
-                android:layout_width="0dp"
+                android:id="@+id/durationTv"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:textSize="12sp"
                 android:textColor="#FFF"/>
 
         </LinearLayout>
