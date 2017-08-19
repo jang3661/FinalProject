@@ -3,10 +3,10 @@ package com.example.doublejk.laboum.view;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.ActionMenuView;
@@ -18,7 +18,6 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -26,9 +25,9 @@ import android.widget.Toast;
 import com.example.doublejk.laboum.adapter.HomeRecyclerAdapter;
 import com.example.doublejk.laboum.R;
 import com.example.doublejk.laboum.SelectedMusicProvider;
+import com.example.doublejk.laboum.model.Music;
 import com.example.doublejk.laboum.retrofit.RetroCallback;
 import com.example.doublejk.laboum.retrofit.RetroClient;
-import com.example.doublejk.laboum.retrofit.SearchItem;
 import com.example.doublejk.laboum.util.UrlToColor;
 import com.example.doublejk.laboum.util.ViewAnimation;
 import com.google.gson.Gson;
@@ -42,14 +41,14 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
     //private OnFragmentInteractionListener mListener;
     private RetroClient retroClient;
     private RecyclerView recyclerView;
-    private LinkedHashMap<Integer, SearchItem> musicMap;
+    private LinkedHashMap<Integer, Music> musicMap;
     private Button resetBtn, playBtn, saveMusicBtn;
     private LinearLayout selectingLayout;
     private LinearLayoutManager linearLayoutManager;
     private HomeRecyclerAdapter homeRecyclerAdapter;
-    private ArrayList<SearchItem> searchItems;
-    private Animation animation;
+    private ArrayList<Music> musics;
     private static final String API_KEY = "AIzaSyAH-UUr_Y7XKUg7OUy38J1H6paTdbgOqGo";
+    String[] items = {"Basic Playlist", "+새 재생목록 추가"};
     public static HomeFragment newInstance() {
         HomeFragment homeFragment = new HomeFragment();
 /*        Bundle args = new Bundle();
@@ -92,7 +91,7 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
 
     SelectedMusicProvider selectedMusicProvider = new SelectedMusicProvider() {
         @Override
-        public void selectedList(int pos, SearchItem searchItem) {
+        public void selectedList(int pos, Music music) {
             Log.d("selected","호출");
 /*            if(selectingLayout.getVisibility() == View.GONE) {public static void
                 selectingLayout.setVisibility(View.VISIBLE);
@@ -101,7 +100,7 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
                 ViewAnimation.dropDwon(((MainActivity) getActivity()).getTabLayout());
                 ViewAnimation.riseUp(selectingLayout);
             }
-            musicMap.put(pos, searchItem);
+            musicMap.put(pos, music);
         }
 
         @Override
@@ -119,7 +118,7 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         Log.d("onSaveInstanceState", "ㅇㅇ");
-        outState.putParcelableArrayList("musics", searchItems);
+        outState.putParcelableArrayList("musics", musics);
 
     }
 
@@ -133,16 +132,16 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
 
             @Override
             public void onSuccess(int code, Object receivedData) {
-                searchItems = (ArrayList<SearchItem>) receivedData;
+                musics = (ArrayList<Music>) receivedData;
                 //멀티쓰레드 돌린다.
-                new UriToPalette().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, searchItems);
-                //new UriToPalette().execute(searchItems);
-                homeRecyclerAdapter = new HomeRecyclerAdapter(getActivity(), searchItems, selectedMusicProvider);
+                new UriToPalette().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, musics);
+                //new UriToPalette().execute(musics);
+                homeRecyclerAdapter = new HomeRecyclerAdapter(getActivity(), musics, selectedMusicProvider);
                 recyclerView.setAdapter(homeRecyclerAdapter);
                 recyclerView.setItemAnimator(new DefaultItemAnimator());
 /*                recyclerAdapter.setItemClick(new SearchRecyclerAdapter.ItemClickListner() {
                     @Override
-                    public void onItemClickListener(ArrayList<SearchItem> items, int position) {
+                    public void onItemClickListener(ArrayList<Music> items, int position) {
                         Intent intent = new Intent(getApplicationContext(), PlayerActivity.class);
                         intent.putExtra("videoId", items.get(position).getVideoId());
                         startActivity(intent);
@@ -156,11 +155,11 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
         });
     }
 
-     public class UriToPalette extends AsyncTask<ArrayList<SearchItem>, Void, ArrayList<SearchItem>> {
+     public class UriToPalette extends AsyncTask<ArrayList<Music>, Void, ArrayList<Music>> {
 
         @Override
-        protected ArrayList<SearchItem> doInBackground(ArrayList<SearchItem>... params) {
-            ArrayList<SearchItem> items = params[0];
+        protected ArrayList<Music> doInBackground(ArrayList<Music>... params) {
+            ArrayList<Music> items = params[0];
             for(int i = 0; i < items.size(); i++)
                     UrlToColor.setColor(items.get(i));
             return items;
@@ -172,9 +171,9 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
         }
 
          @Override
-         protected void onPostExecute(ArrayList<SearchItem> items) {
+         protected void onPostExecute(ArrayList<Music> items) {
              super.onPostExecute(items);
-             searchItems = items;
+             musics = items;
              //homeRecyclerAdapter.notifyDataSetChanged();
              Log.d("ㅇㅇ", "성공");
          }
@@ -207,12 +206,14 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
                 musicMap.clear();
                 break;
             case R.id.saveMusic:
-                String[] items = {"Basic Playlist", "재생목록 추가"};
-                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.Theme_AppCompat_DayNight_Dialog);
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
                 builder.setTitle("재생목록")
                         .setItems(items, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
-
+                                if(items.length -1 == which) {
+                                    showDialog();
+                                }
                             }
                         });
                 AlertDialog alertDialog = builder.create();
@@ -224,7 +225,12 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
         super.onActivityCreated(savedInstanceState);
         Log.d("onActivityCreated", "ㅇㅇ");
         if(savedInstanceState != null)
-            searchItems = savedInstanceState.getParcelableArrayList("musics");
+            musics = savedInstanceState.getParcelableArrayList("musics");
+    }
+
+    void showDialog() {
+        DialogFragment newFragment = NewPlaylistDialogFragment.newInstance();
+        newFragment.show(getFragmentManager(), "dialog");
     }
 
 

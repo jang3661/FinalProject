@@ -1,13 +1,9 @@
 package com.example.doublejk.laboum.view;
 
-import android.content.res.Resources;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.RecyclerView;
-import android.util.DisplayMetrics;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -19,8 +15,8 @@ import android.widget.TextView;
 
 import com.example.doublejk.laboum.R;
 import com.example.doublejk.laboum.RecyclerItemClickListener;
-import com.example.doublejk.laboum.adapter.PlaylistRecyclerAdapter;
-import com.example.doublejk.laboum.retrofit.SearchItem;
+import com.example.doublejk.laboum.adapter.PlayerRecyclerAdapter;
+import com.example.doublejk.laboum.model.Music;
 import com.example.doublejk.laboum.util.DimensionConverter;
 import com.example.doublejk.laboum.util.GlidePalette;
 import com.google.android.youtube.player.YouTubeBaseActivity;
@@ -43,9 +39,9 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
     YouTubePlayerView youTubePlayerView;
     static final String YOUTUBE_KEY = "AIzaSyBwqHpHu9AwlEfiIVKcJ4rsBWOfgP6WmB0";
     private RecyclerView recyclerView;
-    private PlaylistRecyclerAdapter playlistRecyclerAdapter;
-    private LinkedHashMap<Integer, SearchItem> musics;
-    private ArrayList<SearchItem> searchItems;
+    private PlayerRecyclerAdapter playerRecyclerAdapter;
+    private LinkedHashMap<Integer, Music> PlayerMusics;
+    private ArrayList<Music> musics;
     private YouTubePlayer youTubePlayer;
     private List<String> videoIds;
     private MyPlaybackEventListener myPlaybackEventListener;
@@ -60,8 +56,7 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
     private SeekBar seekBar;
     private TimerTask timerTask;
     private Timer timer;
-    private boolean isPlayStarted;
-    static int Count;
+    private boolean isPlayStarted, doTouchPlayer;
 
     private final int REPEAT_PLAY = 0;
     private final int ONE_REPEAT_PLAY = 1;
@@ -93,7 +88,7 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
 
         receiveDataInit();
 
-       // new UriToPalette().execute(searchItems);
+       // new UriToPalette().execute(musics);
         myPlaybackEventListener = new MyPlaybackEventListener();
         myPlayerStateChangeListener = new MyPlayerStateChangeListener();
         myPlaylistEventListener = new MyPlaylistEventListener();
@@ -102,18 +97,16 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         //recyclerView.addItemDecoration(new DividerItemDecoration(this, ));
         //recyclerView.addItemDecoration(new CustomDividerItemDecoration(this));
 
-        playlistRecyclerAdapter = new PlaylistRecyclerAdapter(this, searchItems);
-        playlistRecyclerAdapter.setPlayingMusicPostion(0); //현재 재생중인 노래 index
-        recyclerView.setAdapter(playlistRecyclerAdapter);
+        playerRecyclerAdapter = new PlayerRecyclerAdapter(this, musics);
+        playerRecyclerAdapter.setPlayingMusicPostion(0); //현재 재생중인 노래 index
+        recyclerView.setAdapter(playerRecyclerAdapter);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
 
         recyclerView.addOnItemTouchListener(new RecyclerItemClickListener(getApplicationContext(),
                 recyclerView, new RecyclerItemClickListener.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
-                //window, layout, 각 아이템 색변경
-                //view.setBackgroundColor(searchItems.get(position).getBackGround());
-               // playlistRecyclerAdapter.notifyDataSetChanged();
+                doTouchPlayer = true;
                 youTubePlayer.loadVideos(videoIds, position, 0);
                 updateData(position);
             }
@@ -175,10 +168,10 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
 
-        window.setStatusBarColor(searchItems.get(0).getPaletteColor().getDarkMutedRgb());
-        playerLayout.setBackgroundColor(searchItems.get(0).getPaletteColor().getMutedRgb());
-        if(searchItems.size() < 5) {
-            divider.setBackgroundColor(searchItems.get(0).getPaletteColor().getDarkMutedRgb());
+        window.setStatusBarColor(musics.get(0).getPaletteColor().getDarkVibrantRgb());
+        playerLayout.setBackgroundColor(musics.get(0).getPaletteColor().getVibrantRgb());
+        if(musics.size() < 5) {
+            divider.setBackgroundColor(musics.get(0).getPaletteColor().getDarkVibrantRgb());
             divider.setVisibility(View.VISIBLE);
         } else {
             //나중에 다른곳도 추가해줘야한다. 재생목록 추가삭제할때
@@ -187,17 +180,17 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
     }
     public void receiveDataInit() {
         Gson gson = new Gson();
-        musics = new LinkedHashMap<>();
+        PlayerMusics = new LinkedHashMap<>();
         String musicList = getIntent().getStringExtra("musicInfo");
-        Type entityType = new TypeToken<LinkedHashMap<Integer, SearchItem>>(){}.getType();
-        musics = gson.fromJson(musicList, entityType);
+        Type entityType = new TypeToken<LinkedHashMap<Integer, Music>>(){}.getType();
+        PlayerMusics = gson.fromJson(musicList, entityType);
 
-        Iterator<Integer> keys = musics.keySet().iterator();
-        searchItems = new ArrayList<>();
+        Iterator<Integer> keys = PlayerMusics.keySet().iterator();
+        musics = new ArrayList<>();
         while (keys.hasNext()) {
-            final SearchItem searchItem = musics.get(keys.next());
-            searchItems.add(searchItem);
-            videoIds.add(searchItem.getVideoId());
+            final Music music = PlayerMusics.get(keys.next());
+            musics.add(music);
+            videoIds.add(music.getVideoId());
         }
     }
 
@@ -205,7 +198,7 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
     public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean b) {
         Log.d("onInitializationSuccess", "한번만?");
         this.youTubePlayer = youTubePlayer;
-        youTubePlayer.setPlayerStyle(YouTubePlayer.PlayerStyle.DEFAULT);
+        youTubePlayer.setPlayerStyle(YouTubePlayer.PlayerStyle.CHROMELESS);
         youTubePlayer.setPlaylistEventListener(myPlaylistEventListener);
         youTubePlayer.setPlayerStateChangeListener(myPlayerStateChangeListener);
         youTubePlayer.setPlaybackEventListener(myPlaybackEventListener);
@@ -243,21 +236,23 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
                 }
                 break;
             case R.id.nextBtn:
-                if(playlistRecyclerAdapter.getPlayingMusicPostion() < videoIds.size() -1) {
-                    updateData(playlistRecyclerAdapter.getPlayingMusicPostion() +1);
-                    youTubePlayer.loadVideos(videoIds, playlistRecyclerAdapter.getPlayingMusicPostion(), 0);
+                doTouchPlayer = true;
+                if(playerRecyclerAdapter.getPlayingMusicPostion() < videoIds.size() -1) {
+                    updateData(playerRecyclerAdapter.getPlayingMusicPostion() +1);
+                    youTubePlayer.loadVideos(videoIds, playerRecyclerAdapter.getPlayingMusicPostion(), 0);
                 }else {
                     updateData(0);
                     youTubePlayer .loadVideos(videoIds, 0, 0);
                 }
                 break;
             case R.id.previousBtn:
-                if(playlistRecyclerAdapter.getPlayingMusicPostion() > 0) {
-                    updateData(playlistRecyclerAdapter.getPlayingMusicPostion() -1);
-                    youTubePlayer.loadVideos(videoIds, playlistRecyclerAdapter.getPlayingMusicPostion(), 0);
+                doTouchPlayer = true;
+                if(playerRecyclerAdapter.getPlayingMusicPostion() > 0) {
+                    updateData(playerRecyclerAdapter.getPlayingMusicPostion() -1);
+                    youTubePlayer.loadVideos(videoIds, playerRecyclerAdapter.getPlayingMusicPostion(), 0);
                 }else {
                     updateData(videoIds.size() -1);
-                    youTubePlayer.loadVideos(videoIds, playlistRecyclerAdapter.getPlayingMusicPostion(), 0);
+                    youTubePlayer.loadVideos(videoIds, playerRecyclerAdapter.getPlayingMusicPostion(), 0);
                 }
                 break;
             case R.id.fullscreenBtn:
@@ -269,14 +264,14 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
     public void updateData(int position) {
         Log.d("보여라!!!updateData", "" + position);
         recyclerView.scrollToPosition(position);
-        playlistRecyclerAdapter.setPlayingMusicPostion(position);
-        playlistRecyclerAdapter.notifyDataSetChanged();
+        playerRecyclerAdapter.setPlayingMusicPostion(position);
+        playerRecyclerAdapter.notifyDataSetChanged();
 
-        window.setStatusBarColor(searchItems.get(position).getPaletteColor().getDarkMutedRgb());
-        playerLayout.setBackgroundColor(searchItems.get(position).getPaletteColor().getMutedRgb());
+        window.setStatusBarColor(musics.get(position).getPaletteColor().getDarkVibrantRgb());
+        playerLayout.setBackgroundColor(musics.get(position).getPaletteColor().getVibrantRgb());
         //divider 색변경
-        if(searchItems.size() < 5) {
-            divider.setBackgroundColor(searchItems.get(position).getPaletteColor().getDarkMutedRgb());
+        if(musics.size() < 5) {
+            divider.setBackgroundColor(musics.get(position).getPaletteColor().getDarkVibrantRgb());
         }
         else {
             divider.setVisibility(View.GONE);
@@ -299,9 +294,10 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
         isPlayStarted = true;
-        youTubePlayer.loadVideos(videoIds, playlistRecyclerAdapter.getPlayingMusicPostion(), seekBar.getProgress());
-        timerTask = timerTaskMaker();
-        timer.schedule(timerTask, 500, 300);
+        doTouchPlayer = false;
+        youTubePlayer.loadVideos(videoIds, playerRecyclerAdapter.getPlayingMusicPostion(), seekBar.getProgress());
+/*        timerTask = timerTaskMaker();
+        timer.schedule(timerTask, 500, 300);*/
 }
 
     private final class MyPlaybackEventListener implements YouTubePlayer.PlaybackEventListener {
@@ -314,7 +310,7 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
             durationTv.setText(convertTime(youTubePlayer.getDurationMillis()));
             if(isPlayStarted) {
                 timerTask = timerTaskMaker();
-                timer.schedule(timerTask, 500, 300);
+                timer.schedule(timerTask, 0, 300);
                 isPlayStarted = false;
             } else {
                 timerTask = timerTaskMaker();
@@ -373,6 +369,10 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         @Override
         public void onVideoEnded() {
             showLog("onVideoEnded");
+            if(!doTouchPlayer) {
+                updateData(playerRecyclerAdapter.getPlayingMusicPostion() + 1);
+            }
+            doTouchPlayer = false;
         }
 
         @Override
@@ -391,7 +391,6 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         @Override
         public void onNext() {
             showLog("onNext!");
-            Log.d("보여라!!!", "" + (++Count));
         }
 
         @Override
@@ -407,12 +406,12 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
             timer.cancel();
         }
     }
-    /*public class UriToPalette extends AsyncTask<ArrayList<SearchItem>, Void, ArrayList<PaletteColor>> {
+    /*public class UriToPalette extends AsyncTask<ArrayList<Music>, Void, ArrayList<PaletteColor>> {
 
         @Override
-        protected ArrayList<PaletteColor> doInBackground(ArrayList<SearchItem>... params) {
+        protected ArrayList<PaletteColor> doInBackground(ArrayList<Music>... params) {
             ArrayList<PaletteColor> colors = new ArrayList<>();
-            ArrayList<SearchItem> items = params[0];
+            ArrayList<Music> items = params[0];
             PaletteColor paletteColor;
             for(int i = 0; i < items.size(); i++) {
                 try {
@@ -466,9 +465,9 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         @Override
         protected void onPostExecute(ArrayList<PaletteColor> colors) {
             super.onPostExecute(colors);
-            for(int i = 0; i < searchItems.size(); i++) {
+            for(int i = 0; i < musics.size(); i++) {
                 Log.d("과연", "" + colors.get(i).getVibrantRgb());
-                searchItems.get(i).setPaletteColor(colors.get(i));
+                musics.get(i).setPaletteColor(colors.get(i));
             }
         }
     }*/

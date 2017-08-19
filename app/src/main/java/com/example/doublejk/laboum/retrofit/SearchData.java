@@ -15,7 +15,7 @@ public class SearchData {
     String nextPageToken;
     String regionCode;
     PageInfo pageInfo;
-    ArrayList<SearchItem> searchItem;
+    ArrayList<Music> searchItem;
 
     public String getKind() {
         return kind;
@@ -57,11 +57,11 @@ public class SearchData {
         this.pageInfo = pageInfo;
     }
 
-    public ArrayList<SearchItem> getSearchItem() {
+    public ArrayList<Music> getSearchItem() {
         return searchItem;
     }
 
-    public void setSearchItem(ArrayList<SearchItem> searchItem) {
+    public void setSearchItem(ArrayList<Music> searchItem) {
         this.searchItem = searchItem;
     }
 

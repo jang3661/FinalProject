@@ -8,7 +8,7 @@
     <string name="firebase_status_fmt">Firebase User: %s</string>
     <string name="google_status_fmt">Google User: %s</string>
     <string name="client_id">285294100496-0s05qjdlt4sopsdmnkdi1o5qet6hb94s.apps.googleusercontent.com</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="new_playlist_title">새 재생목록 만들기</string>
+    <string name="cancel">취소</string>
+    <string name="create">만들기</string>
 </resources>

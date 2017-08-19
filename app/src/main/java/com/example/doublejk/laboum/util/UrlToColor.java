@@ -3,10 +3,9 @@ package com.example.doublejk.laboum.util;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.v7.graphics.Palette;
-import android.util.Log;
 
 import com.example.doublejk.laboum.model.PaletteColor;
-import com.example.doublejk.laboum.retrofit.SearchItem;
+import com.example.doublejk.laboum.model.Music;
 
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -18,10 +17,10 @@ import java.net.URL;
 
 public class UrlToColor {
     private static PaletteColor paletteColor;
-    public static void setColor(SearchItem searchItem) {
+    public static void setColor(Music music) {
         try {
             paletteColor = new PaletteColor();
-            URL url = new URL(searchItem.getImgUrl());
+            URL url = new URL(music.getImgUrl());
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setDoInput(true);
             connection.connect();
@@ -74,7 +73,7 @@ public class UrlToColor {
                     }
                 }
             });*/
-            searchItem.setPaletteColor(paletteColor);
+            music.setPaletteColor(paletteColor);
         } catch (Exception e) {
             e.printStackTrace();
         }

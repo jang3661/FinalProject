@@ -9,8 +9,7 @@ import android.view.ViewGroup;
 
 import com.bumptech.glide.Glide;
 import com.example.doublejk.laboum.R;
-import com.example.doublejk.laboum.duplication.SearchViewHolder;
-import com.example.doublejk.laboum.retrofit.SearchItem;
+import com.example.doublejk.laboum.model.Music;
 
 import java.util.ArrayList;
 
@@ -20,11 +19,11 @@ import java.util.ArrayList;
 
 public class SearchRecyclerAdapter extends RecyclerView.Adapter<SearchViewHolder> {
     private Context context;
-    private ArrayList<SearchItem> searchItems;
+    private ArrayList<Music> musics;
     private ItemClickListner itemClickListner;
-    public SearchRecyclerAdapter(Context context,  ArrayList<SearchItem> searchItems) {
+    public SearchRecyclerAdapter(Context context,  ArrayList<Music> musics) {
         this.context = context;
-        this.searchItems = searchItems;
+        this.musics = musics;
     }
     @Override
     public SearchViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -35,26 +34,26 @@ public class SearchRecyclerAdapter extends RecyclerView.Adapter<SearchViewHolder
 
     @Override
     public void onBindViewHolder(SearchViewHolder holder, int position) {
-        Log.d("aaaa", "" + searchItems.get(position).getImgUrl());
-        Glide.with(context).load(searchItems.get(position).getImgUrl()).into(holder.getSearch_img());
-        holder.getSearch_title().setText(searchItems.get(position).getTitle());
+        Log.d("aaaa", "" + musics.get(position).getImgUrl());
+        Glide.with(context).load(musics.get(position).getImgUrl()).into(holder.getSearch_img());
+        holder.getSearch_title().setText(musics.get(position).getTitle());
 
         final int pos = position;
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                itemClickListner.onItemClickListener(searchItems, pos);
+                itemClickListner.onItemClickListener(musics, pos);
             }
         });
     }
 
     @Override
     public int getItemCount() {
-        return searchItems.size();
+        return musics.size();
     }
 
     public interface ItemClickListner {
-        void onItemClickListener(ArrayList<SearchItem> searchItems, int position);
+        void onItemClickListener(ArrayList<Music> musics, int position);
     }
 
     public void setItemClick(ItemClickListner itemClickListner) {

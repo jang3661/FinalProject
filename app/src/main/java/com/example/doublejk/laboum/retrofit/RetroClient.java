@@ -65,7 +65,7 @@ public class RetroClient {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
                 if (response.isSuccessful()) {
-                    Log.d("aaaa", "" + response.body().toString());
+                    //Log.d("aaaa", "" + response.body().toString());
                     callback.onSuccess(response.code(), new JsonParsing(response.body()).popularSearchParsing());
 
                 } else {

@@ -19,12 +19,12 @@ import java.util.ArrayList;
  */
 
 public class MyTabRecyclerAdapter extends RecyclerView.Adapter<MyTabViewHolder> {
-    private ArrayList<Playlist> playlistses;
+    private ArrayList<Playlist> playlists;
     private Context context;
 
     public MyTabRecyclerAdapter(Context context, ArrayList<Playlist> playlistses) {
         this.context = context;
-        this.playlistses = playlistses;
+        this.playlists = playlistses;
         Log.d("아아아", playlistses.get(0).getTitle());
     }
 
@@ -37,12 +37,12 @@ public class MyTabRecyclerAdapter extends RecyclerView.Adapter<MyTabViewHolder> 
 
     @Override
     public void onBindViewHolder(MyTabViewHolder holder, int position) {
-        Glide.with(context).load(playlistses.get(position).getPlaylistImg()).fitCenter().into(holder.getPlaylistIcon());
+        Glide.with(context).load(playlists.get(position).getPlaylistImg()).fitCenter().into(holder.getPlaylistIcon());
         Glide.with(context).load(R.drawable.optionmenu).fitCenter().into(holder.getSettingBtn());
-        holder.getPlaylistTitle().setText(playlistses.get(position).getTitle());
-        holder.getMusicCount().setText(playlistses.get(position).getMusicCount());
+        holder.getPlaylistTitle().setText(playlists.get(position).getTitle());
+        holder.getMusicCount().setText(playlists.get(position).getMusicCount());
     }
 
     @Override
-    public int getItemCount() { return playlistses.size(); }
+    public int getItemCount() { return playlists.size(); }
 }

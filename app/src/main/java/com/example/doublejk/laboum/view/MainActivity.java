@@ -39,9 +39,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //collapsingToolbar.setContentScrimColor(Color.GREEN); //툴바가 사라지는 동안 색상 지정
 
         tabLayout = (TabLayout) findViewById(R.id.tab_layout);
-        tabLayout.addTab(tabLayout.newTab().setText("AAA"));
-        tabLayout.addTab(tabLayout.newTab().setText("BBB"));
-        tabLayout.addTab(tabLayout.newTab().setText("CCC"));
+        tabLayout.addTab(tabLayout.newTab());
+        tabLayout.addTab(tabLayout.newTab());
+        tabLayout.addTab(tabLayout.newTab());
 
         ViewPager viewPager =  (ViewPager) findViewById(R.id.viewpager);
         viewPager.setOffscreenPageLimit(2);

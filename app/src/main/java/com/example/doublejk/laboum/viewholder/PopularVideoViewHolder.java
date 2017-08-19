@@ -16,7 +16,7 @@ import android.widget.TextView;
 import com.example.doublejk.laboum.R;
 import com.example.doublejk.laboum.SelectedMusicProvider;
 import com.example.doublejk.laboum.model.SelectItem;
-import com.example.doublejk.laboum.retrofit.SearchItem;
+import com.example.doublejk.laboum.model.Music;
 
 import java.util.ArrayList;
 
@@ -32,15 +32,15 @@ public class PopularVideoViewHolder extends RecyclerView.ViewHolder implements V
     private LinearLayout linearLayout;
     private LinearLayout viewLinearLayout;
     private Context context;
-    private ArrayList<SearchItem> searchItems;
+    private ArrayList<Music> musics;
     private SelectedMusicProvider selectedMusicProvider;
     private ArrayList<SelectItem> selectedItems;
     private View itemView;
 
-    public PopularVideoViewHolder(View itemView, ArrayList<SearchItem> searchItems, SelectedMusicProvider selectedMusicProvider, ArrayList<SelectItem> selectedItems) {
+    public PopularVideoViewHolder(View itemView, ArrayList<Music> musics, SelectedMusicProvider selectedMusicProvider, ArrayList<SelectItem> selectedItems) {
         super(itemView);
         this.context = itemView.getContext();
-        this.searchItems = searchItems;
+        this.musics = musics;
         this.selectedMusicProvider = selectedMusicProvider;
         this.selectedItems = selectedItems;
         this.itemView = itemView;
@@ -116,7 +116,7 @@ public class PopularVideoViewHolder extends RecyclerView.ViewHolder implements V
                 if (!v.isSelected()) {
                     Log.d("클릭", "" + getAdapterPosition());
                     itemView.setBackgroundColor(Color.rgb(160, 160, 160));
-                    selectedMusicProvider.selectedList(position, searchItems.get(position));
+                    selectedMusicProvider.selectedList(position, musics.get(position));
                     selectedItems.add(new SelectItem(itemView, v));
                     v.setSelected(true);
                 } else {

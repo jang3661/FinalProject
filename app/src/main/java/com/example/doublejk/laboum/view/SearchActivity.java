@@ -25,9 +25,9 @@ import android.widget.Toast;
 import com.example.doublejk.laboum.R;
 import com.example.doublejk.laboum.SelectedMusicProvider;
 import com.example.doublejk.laboum.adapter.HomeRecyclerAdapter;
+import com.example.doublejk.laboum.model.Music;
 import com.example.doublejk.laboum.retrofit.RetroCallback;
 import com.example.doublejk.laboum.retrofit.RetroClient;
-import com.example.doublejk.laboum.retrofit.SearchItem;
 import com.example.doublejk.laboum.util.UrlToColor;
 import com.example.doublejk.laboum.util.ViewAnimation;
 import com.google.gson.Gson;
@@ -44,10 +44,10 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
     private RetroClient retroClient;
     private EditText searchEdit;
     private InputMethodManager imm;
-    private LinkedHashMap<Integer, SearchItem> musicMap;
+    private LinkedHashMap<Integer, Music> musicMap;
     private LinearLayout selectingLayout;
     private Button resetBtn, playBtn;
-    private  ArrayList<SearchItem> searchItems;
+    private  ArrayList<Music> musics;
     private static final String API_KEY = "AIzaSyAH-UUr_Y7XKUg7OUy38J1H6paTdbgOqGo";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,12 +96,12 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
     }
     SelectedMusicProvider selectedMusicProvider = new SelectedMusicProvider() {
         @Override
-        public void selectedList(int pos, SearchItem searchItem) {
+        public void selectedList(int pos, Music music) {
             Log.d("selected","호출");
             if(musicMap.size() == 0) {
                 ViewAnimation.riseUp(selectingLayout);
             }
-            musicMap.put(pos, searchItem);
+            musicMap.put(pos, music);
         }
 
         @Override
@@ -128,18 +128,18 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
             }
             @Override
             public void onSuccess(int code, Object receivedData) {
-                searchItems = (ArrayList<SearchItem>) receivedData;
-                new UriToPalette().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, searchItems);
-                homeRecyclerAdapter = new HomeRecyclerAdapter(getApplicationContext(), searchItems, selectedMusicProvider);
+                musics = (ArrayList<Music>) receivedData;
+                new UriToPalette().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, musics);
+                homeRecyclerAdapter = new HomeRecyclerAdapter(getApplicationContext(), musics, selectedMusicProvider);
                 recyclerView.setAdapter(homeRecyclerAdapter);
                 recyclerView.setItemAnimator(new DefaultItemAnimator());
 
- /*               recyclerAdapter = new SearchRecyclerAdapter(getApplicationContext(), searchItems);
+ /*               recyclerAdapter = new SearchRecyclerAdapter(getApplicationContext(), musics);
                 recyclerView.setAdapter(recyclerAdapter);
                 recyclerView.setItemAnimator(new DefaultItemAnimator());
                 recyclerAdapter.setItemClick(new SearchRecyclerAdapter.ItemClickListner() {
                     @Override
-                    public void onItemClickListener(ArrayList<SearchItem> items, int position) {
+                    public void onItemClickListener(ArrayList<Music> items, int position) {
                         Intent intent = new Intent(getApplicationContext(), PlayerActivity.class);
                         intent.putExtra("videoId", items.get(position).getVideoId());
                         startActivity(intent);
@@ -148,7 +148,7 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
                 });*/
 
 /*                codeResultTextView.setText(String.valueOf(code));
-                idResultTextView.setText(searchItems.get(0).getTitle());*/
+                idResultTextView.setText(musics.get(0).getTitle());*/
                 //titleResultTextView.setText(searchData);
 /*                useridResultTextView.setText(String.valueOf(data.userId));
                 bodyResultTextView.setText(data.body);*/
@@ -159,11 +159,11 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
             }
         });
     }
-    public class UriToPalette extends AsyncTask<ArrayList<SearchItem>, Void, ArrayList<SearchItem>> {
+    public class UriToPalette extends AsyncTask<ArrayList<Music>, Void, ArrayList<Music>> {
 
         @Override
-        protected ArrayList<SearchItem> doInBackground(ArrayList<SearchItem>... params) {
-            ArrayList<SearchItem> items = params[0];
+        protected ArrayList<Music> doInBackground(ArrayList<Music>... params) {
+            ArrayList<Music> items = params[0];
             for(int i = 0; i < items.size(); i++)
                 UrlToColor.setColor(items.get(i));
             return items;
@@ -176,9 +176,9 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
         }
 
         @Override
-        protected void onPostExecute(ArrayList<SearchItem> items) {
+        protected void onPostExecute(ArrayList<Music> items) {
             super.onPostExecute(items);
-            searchItems = items;
+            musics = items;
             Log.d("ㅇㅇ", "성공");
         }
     }

@@ -2,20 +2,28 @@ package com.example.doublejk.laboum.model;
 
 import com.example.doublejk.laboum.R;
 
+import java.util.ArrayList;
+
 /**
  * Created by doublejk on 2017-08-11.
  */
 
 public class Playlist {
-    int playlistImg;
     private String title;
     private String musicCount;
+    private ArrayList<Music> musics;
+    private int playlistImg;
+    private String userName;
 
-    public Playlist(String title, String musicCount) {
-        this.playlistImg = R.drawable.playlist;
+    public Playlist(String title, String userName) {
         this.title = title;
-        this.musicCount = musicCount + "곡";
+        this.musicCount = "0곡";
+        this.playlistImg = R.drawable.playlist;
+        this.musics = new ArrayList<>();
+        this.userName = userName;
     }
+
+    public void rename() {}
 
     public int getPlaylistImg() {
         return playlistImg;

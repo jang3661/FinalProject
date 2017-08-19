@@ -23,7 +23,6 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="16dp"
             android:layout_marginRight="16dp"
-
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
@@ -99,6 +98,7 @@
                 android:id="@+id/currentTimeTv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:text="00:00"
                 android:textSize="12sp"
                 android:textColor="#FFF"/>
             <SeekBar
@@ -110,6 +110,7 @@
                 android:id="@+id/durationTv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:text="00:00"
                 android:textSize="12sp"
                 android:textColor="#FFF"/>
 

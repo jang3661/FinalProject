@@ -1,7 +1,6 @@
 package com.example.doublejk.laboum.retrofit;
 
-import android.util.Log;
-
+import com.example.doublejk.laboum.model.Music;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
@@ -13,45 +12,45 @@ import java.util.ArrayList;
 
 public class JsonParsing {
     JsonObject jsonObject;
-    ArrayList<SearchItem> searchItems;
+    ArrayList<Music> musics;
 
     public JsonParsing(JsonObject jsonObject) {
         this.jsonObject = jsonObject;
-        searchItems = new ArrayList<>();
+        musics = new ArrayList<>();
     }
 
-    public ArrayList<SearchItem> parsing() {
+    public ArrayList<Music> parsing() {
         JsonArray jsonArray = jsonObject.getAsJsonArray("items");
         for (int i = 0; i < jsonArray.size(); i++) {
-            SearchItem searchItem = new SearchItem();
+            Music music = new Music();
             if (jsonArray.get(i).getAsJsonObject().get("id")
                     .getAsJsonObject().get("kind").toString().equals("\"youtube#video\"")) {
-                searchItem.setVideoId(subString(jsonArray.get(i).getAsJsonObject().get("id")
+                music.setVideoId(subString(jsonArray.get(i).getAsJsonObject().get("id")
                         .getAsJsonObject().get("videoId").toString()));
-                searchItem.setTitle(subString(jsonArray.get(i).getAsJsonObject().get("snippet")
+                music.setTitle(subString(jsonArray.get(i).getAsJsonObject().get("snippet")
                         .getAsJsonObject().get("title").toString()));
-                searchItem.setImgUrl(subString(jsonArray.get(i).getAsJsonObject().get("snippet")
+                music.setImgUrl(subString(jsonArray.get(i).getAsJsonObject().get("snippet")
                         .getAsJsonObject().get("thumbnails").getAsJsonObject().get("medium")
                         .getAsJsonObject().get("url").toString()));
-                searchItems.add(searchItem);
+                musics.add(music);
             }
         }
-        return searchItems;
+        return musics;
     }
 
-    public ArrayList<SearchItem> popularSearchParsing() {
+    public ArrayList<Music> popularSearchParsing() {
         JsonArray jsonArray = jsonObject.getAsJsonArray("items");
         for (int i = 0; i < jsonArray.size(); i++) {
-            SearchItem searchItem = new SearchItem();
-            searchItem.setVideoId(subString(jsonArray.get(i).getAsJsonObject().get("id").toString()));
-            searchItem.setTitle(subString(jsonArray.get(i).getAsJsonObject().get("snippet")
+            Music music = new Music();
+            music.setVideoId(subString(jsonArray.get(i).getAsJsonObject().get("id").toString()));
+            music.setTitle(subString(jsonArray.get(i).getAsJsonObject().get("snippet")
                     .getAsJsonObject().get("title").toString()));
-            searchItem.setImgUrl(subString(jsonArray.get(i).getAsJsonObject().get("snippet")
+            music.setImgUrl(subString(jsonArray.get(i).getAsJsonObject().get("snippet")
                     .getAsJsonObject().get("thumbnails").getAsJsonObject().get("medium")
                     .getAsJsonObject().get("url").toString()));
-            searchItems.add(searchItem);
+            musics.add(music);
         }
-        return searchItems;
+        return musics;
     }
 
     public String subString(String s) {

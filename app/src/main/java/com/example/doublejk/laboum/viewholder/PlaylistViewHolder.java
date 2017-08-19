@@ -8,7 +8,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.doublejk.laboum.R;
-import com.example.doublejk.laboum.retrofit.SearchItem;
+import com.example.doublejk.laboum.model.Music;
 import com.example.doublejk.laboum.util.GlidePalette;
 
 import java.util.ArrayList;
@@ -22,19 +22,19 @@ public class PlaylistViewHolder extends RecyclerView.ViewHolder {
     private TextView musicTitle;
     private ImageButton musicSettingBtn;
     LinearLayout linearLayout;
-    private ArrayList<SearchItem> searchItems;
+    private ArrayList<Music> musics;
     private View itemView;
     private GlidePalette glidePalette;
-    public PlaylistViewHolder(View itemView, ArrayList<SearchItem> searchItems) {
+    public PlaylistViewHolder(View itemView, ArrayList<Music> musics) {
         super(itemView);
-        this.searchItems = searchItems;
+        this.musics = musics;
         this.itemView = itemView;
 
         musicImg = (ImageView) itemView.findViewById(R.id.popular_img);
         musicTitle = (TextView) itemView.findViewById(R.id.popular_txt);
         musicSettingBtn = (ImageButton) itemView.findViewById(R.id.popularity_imgbtn);
         linearLayout = (LinearLayout) itemView.findViewById(R.id.popular_viewlinear);
-        /*glidePalette = new GlidePalette(itemView.getContext(), searchItems.get(getAdapterPosition()).getImgUrl(), musicImg);
+        /*glidePalette = new GlidePalette(itemView.getContext(), musics.get(getAdapterPosition()).getImgUrl(), musicImg);
         itemView.setBackgroundColor(glidePalette.getVibrantBackgroundColor(glidePalette.setPaletteColor()));*/
     }
 

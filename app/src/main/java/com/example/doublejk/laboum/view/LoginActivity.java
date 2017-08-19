@@ -34,11 +34,11 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
     private static final int RC_SIGN_IN = 9001;
 
     private FirebaseAuth mAuth;
-
     private GoogleApiClient mGoogleApiClient;
     private TextView mStatusTextView;
     private TextView mDetailTextView;
     private TextView info;
+    //private FirebaseAuth.AuthStateListener mAuthListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +53,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         findViewById(R.id.sign_out_button).setOnClickListener(this);
         findViewById(R.id.disconnect_button).setOnClickListener(this);
 
+        //구글계정연동 Oauth client id 보냄
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
@@ -63,6 +64,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                 .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
                 .build();
 
+        //firebase 개체 가져오기
         mAuth = FirebaseAuth.getInstance();
     }
 
@@ -74,6 +76,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         updateUI(currentUser);
     }
 
+    //여기서 정보를 받는다.
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -82,10 +85,12 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         if (requestCode == RC_SIGN_IN) {
             GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
             Log.d("aaaa", ""+result);
-
+            //구글인증 성공시
             if (result.isSuccess()) {
+                Log.d("aaaa", "Success");
                 // Google Sign In was successful, authenticate with Firebase
                 GoogleSignInAccount account = result.getSignInAccount();
+
                 String personName = account.getDisplayName();
                 String personGivenName = account.getGivenName();
                 String personFamilyName = account.getFamilyName();
@@ -94,15 +99,12 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                 Uri personPhoto = account.getPhotoUrl();
                 firebaseAuthWithGoogle(account);
                 info.setText(personName + "\n" + personGivenName + "\n" +personFamilyName + " \n"
-                        + personEmail + "\n" + personId + "\n" + personPhoto + "\n" + account.getGrantedScopes() + "\n" + account.getServerAuthCode()
-                + "\n" + account.getIdToken());
-                Log.d("aaaa", "Success");
+                        + personEmail + "\n" + personId + "\n" + personPhoto );
+
             } else {
                 // Google Sign In failed, update UI appropriately
-                // [START_EXCLUDE]
                 Log.d("aaaa", "Fail");
                 updateUI(null);
-                // [END_EXCLUDE]
             }
         }
     }
@@ -137,7 +139,6 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                     }
                 });
     }
-
 
     private void signIn() {
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);

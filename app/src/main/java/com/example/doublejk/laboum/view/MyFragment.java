@@ -23,7 +23,7 @@ public class MyFragment extends Fragment {
     private RecyclerView myRecyclerView;
     private MyTabRecyclerAdapter myTabRecyclerAdapter;
     private LinearLayoutManager linearLayoutManager;
-    private ArrayList<Playlist> playlistses;
+    private ArrayList<Playlist> playlists;
 
     public static MyFragment newInstance() {
         MyFragment myFragment = new MyFragment();
@@ -50,10 +50,10 @@ public class MyFragment extends Fragment {
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         myRecyclerView.setLayoutManager(linearLayoutManager);
 
-        playlistses = new ArrayList<>();
-        playlistses.add(new Playlist("Basic Playlist", "0"));
+        playlists = new ArrayList<>();
+        playlists.add(new Playlist("Basic Playlist", "0"));
 
-        myTabRecyclerAdapter = new MyTabRecyclerAdapter(getActivity(), playlistses);
+        myTabRecyclerAdapter = new MyTabRecyclerAdapter(getActivity(), playlists);
         myRecyclerView.setAdapter(myTabRecyclerAdapter);
         myRecyclerView.setItemAnimator(new DefaultItemAnimator());
 
