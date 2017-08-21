@@ -11,7 +11,7 @@ public class Music implements Parcelable{
     private String videoId;
     private String title;
     private String imgUrl;
-    boolean isSelected;
+    private boolean isSelected;
     private PaletteColor paletteColor;
 
     public Music() {}
@@ -20,7 +20,6 @@ public class Music implements Parcelable{
         this.videoId = videoId;
         this.title = title;
         this.imgUrl = imgUrl;
-        this.isSelected = false;
     }
 
     protected Music(Parcel in) {
@@ -42,12 +41,6 @@ public class Music implements Parcelable{
             return new Music[size];
         }
     };
-
-    public void setSelected(boolean selected) { isSelected = selected; }
-
-    public boolean isSelected() {
-        return isSelected;
-    }
 
     public String getVideoId() {
         return videoId;
@@ -82,6 +75,14 @@ public class Music implements Parcelable{
         this.paletteColor = new PaletteColor(paletteColor);
     }
 
+    public boolean isSelected() {
+        return isSelected;
+    }
+
+    public void setSelected(boolean selected) {
+        isSelected = selected;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -93,7 +94,6 @@ public class Music implements Parcelable{
         dest.writeString(title);
         dest.writeString(imgUrl);
         dest.writeByte((byte) (isSelected ? 1 : 0));
-        dest.writeParcelable(paletteColor , flags);
+        dest.writeParcelable(paletteColor, flags);
     }
-
 }

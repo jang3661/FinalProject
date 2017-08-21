@@ -1,6 +1,8 @@
 package com.example.doublejk.laboum.view;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -10,7 +12,15 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.doublejk.laboum.NowPlayingPlaylist;
+import com.example.doublejk.laboum.PlaylistSharedPreferences;
 import com.example.doublejk.laboum.R;
+import com.example.doublejk.laboum.SQLiteHelper;
+import com.example.doublejk.laboum.model.MyPlaylist;
+import com.example.doublejk.laboum.model.Playlist;
+import com.example.doublejk.laboum.model.User;
+import com.example.doublejk.laboum.retrofit.NodeRetroClient;
+import com.example.doublejk.laboum.retrofit.RetroCallback;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -18,6 +28,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -27,23 +38,35 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 
+import retrofit2.http.Url;
+
 public class LoginActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener,
         View.OnClickListener{
 
     private static final String TAG = "GoogleActivity";
+    private static final String YOUTUBE_SCOPE = "https://www.googleapis.com/auth/youtube";
     private static final int RC_SIGN_IN = 9001;
 
     private FirebaseAuth mAuth;
     private GoogleApiClient mGoogleApiClient;
+    private NodeRetroClient nodeRetroClient;
     private TextView mStatusTextView;
     private TextView mDetailTextView;
     private TextView info;
-    //private FirebaseAuth.AuthStateListener mAuthListener;
+    private String token;
+    private SQLiteHelper sqliteHelper;
+    private  SharedPreferences sp;
+    SharedPreferences.Editor editor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        sqliteHelper = new SQLiteHelper(this);
+        //디비삭제용
+        SQLiteDatabase db = sqliteHelper.getWritableDatabase();
+        sqliteHelper.onDrop(db);
 
         mStatusTextView = (TextView) findViewById(R.id.status);
         mDetailTextView = (TextView) findViewById(R.id.detail);
@@ -56,6 +79,8 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         //구글계정연동 Oauth client id 보냄
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
+                .requestServerAuthCode(getString(R.string.default_web_client_id), false)
+                .requestScopes(new Scope(YOUTUBE_SCOPE))
                 .requestEmail()
                 .build();
 
@@ -63,9 +88,20 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                 .enableAutoManage(this /* FragmentActivity */, this /* OnConnectionFailedListener */)
                 .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
                 .build();
-
         //firebase 개체 가져오기
         mAuth = FirebaseAuth.getInstance();
+
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        sp = getSharedPreferences("playlist", 0);
+        editor = sp.edit();
+        editor.putString("title", NowPlayingPlaylist.title);
+        editor.commit();
+
+        Log.d("onStop", "" + NowPlayingPlaylist.title);
     }
 
     @Override
@@ -84,22 +120,57 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
         if (requestCode == RC_SIGN_IN) {
             GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
-            Log.d("aaaa", ""+result);
             //구글인증 성공시
             if (result.isSuccess()) {
                 Log.d("aaaa", "Success");
                 // Google Sign In was successful, authenticate with Firebase
                 GoogleSignInAccount account = result.getSignInAccount();
-
+                firebaseAuthWithGoogle(account);
                 String personName = account.getDisplayName();
                 String personGivenName = account.getGivenName();
                 String personFamilyName = account.getFamilyName();
                 String personEmail = account.getEmail();
                 String personId = account.getId();
                 Uri personPhoto = account.getPhotoUrl();
-                firebaseAuthWithGoogle(account);
+
+
+                sp = getSharedPreferences("playlist", 0);
+                String title = sp.getString("title", "");
+                if(title.length() == 0) {
+                    Log.d("확인", "ㅇ"+ title);
+                    sqliteHelper.insert(new Playlist("Basic Playlist", account.getEmail(), account.getDisplayName()));
+                    NowPlayingPlaylist.title = "Basic Playlist";
+                } else {
+                    Log.d("확인!", "ㅇ"+title);
+                }
+                //sqliteHelper.select();
+
+                User user = new User(account.getEmail(), account.getDisplayName(), account.getPhotoUrl().toString());
+                //user.getPlaylists().add(new MyPlaylist("asdf", account.getEmail(), account.getDisplayName()));
+
+                nodeRetroClient = NodeRetroClient.getInstance(getApplicationContext()).createBaseApi();
+                nodeRetroClient.postLogin(user, new RetroCallback() {
+                    @Override
+                    public void onError(Throwable t) {
+                        Log.e("err", "" + t.toString());
+                    }
+                    @Override
+                    public void onSuccess(int code, Object receivedData) {
+                        Log.d("postLogin", "" + receivedData);
+                    }
+                    @Override
+                    public void onFailure(int code) {
+                        Log.e("Fail", "" + code);
+                    }
+                });
+
                 info.setText(personName + "\n" + personGivenName + "\n" +personFamilyName + " \n"
-                        + personEmail + "\n" + personId + "\n" + personPhoto );
+                         + account.getServerAuthCode() + "\n" + personId);
+                Log.d("dd", "" + account.getServerAuthCode());
+
+                Intent intent = new Intent(this, MainActivity.class);
+                intent.putExtra("user", user);
+                startActivity(intent);
 
             } else {
                 // Google Sign In failed, update UI appropriately
@@ -124,6 +195,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                             // Sign in success, update UI with the signed-in user's information
                             Log.d(TAG, "signInWithCredential:success");
                             FirebaseUser user = mAuth.getCurrentUser();
+
                             updateUI(user);
                         } else {
                             // If sign in fails, display a message to the user.

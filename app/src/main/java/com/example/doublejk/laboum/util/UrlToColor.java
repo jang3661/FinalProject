@@ -31,26 +31,26 @@ public class UrlToColor {
                 Palette.Swatch vibrantSwatch = palette.getVibrantSwatch();
                 if (vibrantSwatch != null) {
                     paletteColor.setVibrantRgb(vibrantSwatch.getRgb());
-                    paletteColor.setVibrantTitle(vibrantSwatch.getTitleTextColor());
-                    paletteColor.setVibrantBody(vibrantSwatch.getBodyTextColor());
                 }
+//                Palette.Swatch lightVibrantSwatch = palette.getLightVibrantSwatch();
+//                if (lightVibrantSwatch != null) {
+//                    paletteColor.setLightVibrantRgb(lightVibrantSwatch.getRgb());
+//                }
                 Palette.Swatch darkVibrantSwatch = palette.getDarkVibrantSwatch();
                 if (darkVibrantSwatch != null) {
                     paletteColor.setDarkVibrantRgb(darkVibrantSwatch.getRgb());
-                    paletteColor.setDarkVibrantTitle(darkVibrantSwatch.getTitleTextColor());
-                    paletteColor.setDarkVibrantBody(darkVibrantSwatch.getBodyTextColor());
                 }
                 Palette.Swatch mutedSwatch = palette.getMutedSwatch();
                 if (mutedSwatch != null) {
                     paletteColor.setMutedRgb(mutedSwatch.getRgb());
-                    paletteColor.setMutedTitle(mutedSwatch.getTitleTextColor());
-                    paletteColor.setMutedBody(mutedSwatch.getBodyTextColor());
                 }
+//                Palette.Swatch lightMutedSwatch = palette.getLightMutedSwatch();
+//                if (lightMutedSwatch != null) {
+//                    paletteColor.setLightMutedRgb(lightMutedSwatch.getRgb());
+//                }
                 Palette.Swatch darkMutedSwatch = palette.getDarkMutedSwatch();
                 if (darkMutedSwatch != null) {
                     paletteColor.setDarkMutedRgb(darkMutedSwatch.getRgb());
-                    paletteColor.setDarkMutedTitle(darkMutedSwatch.getTitleTextColor());
-                    paletteColor.setDarkMutedBody(darkMutedSwatch.getBodyTextColor());
                 }
             }
 

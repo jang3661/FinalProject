@@ -11,12 +11,12 @@ import com.example.doublejk.laboum.model.YourPlaylist;
  */
 
 public class PlaylistFactory {
-    public static Playlist createPlaylist (String type, String title, String userName) {
+    public static Playlist createPlaylist (String type, String title, String userEmail, String userName) {
         if(type.equals("My")) {
-            return new MyPlaylist(title, userName);
+            return new MyPlaylist(title, userEmail, userName);
         }
         else if(type.equals("Your")) {
-            return new YourPlaylist(title, userName);
+            return new YourPlaylist(title, userEmail, userName);
         }
         else
             return null;

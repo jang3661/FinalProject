@@ -27,7 +27,7 @@ import com.example.doublejk.laboum.SelectedMusicProvider;
 import com.example.doublejk.laboum.adapter.HomeRecyclerAdapter;
 import com.example.doublejk.laboum.model.Music;
 import com.example.doublejk.laboum.retrofit.RetroCallback;
-import com.example.doublejk.laboum.retrofit.RetroClient;
+import com.example.doublejk.laboum.retrofit.YoutubeRetroClient;
 import com.example.doublejk.laboum.util.UrlToColor;
 import com.example.doublejk.laboum.util.ViewAnimation;
 import com.google.gson.Gson;
@@ -41,7 +41,7 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
     private HomeRecyclerAdapter homeRecyclerAdapter;
     private LinearLayoutManager linearLayout;
     private Toolbar toolbar;
-    private RetroClient retroClient;
+    private YoutubeRetroClient youtubeRetroClient;
     private EditText searchEdit;
     private InputMethodManager imm;
     private LinkedHashMap<Integer, Music> musicMap;
@@ -78,7 +78,7 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
 
         getWindowSize();
 
-        retroClient = RetroClient.getInstance(this).createBaseApi();
+        youtubeRetroClient = YoutubeRetroClient.getInstance(this).createBaseApi();
 
         searchEdit.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -121,7 +121,7 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
 
     public void showSearchList() {
         Toast.makeText(this, "GET 1 Clicked", Toast.LENGTH_SHORT).show();
-        retroClient.getSearch(searchEdit.getText().toString(),API_KEY ,20, new RetroCallback() {
+        youtubeRetroClient.getSearch(searchEdit.getText().toString(),API_KEY ,20, new RetroCallback() {
             @Override
             public void onError(Throwable t) {
                 Log.e("", t.toString());

@@ -22,12 +22,15 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.example.doublejk.laboum.NowPlayingPlaylist;
+import com.example.doublejk.laboum.SQLiteHelper;
 import com.example.doublejk.laboum.adapter.HomeRecyclerAdapter;
 import com.example.doublejk.laboum.R;
 import com.example.doublejk.laboum.SelectedMusicProvider;
 import com.example.doublejk.laboum.model.Music;
+import com.example.doublejk.laboum.model.Playlist;
 import com.example.doublejk.laboum.retrofit.RetroCallback;
-import com.example.doublejk.laboum.retrofit.RetroClient;
+import com.example.doublejk.laboum.retrofit.YoutubeRetroClient;
 import com.example.doublejk.laboum.util.UrlToColor;
 import com.example.doublejk.laboum.util.ViewAnimation;
 import com.google.gson.Gson;
@@ -39,7 +42,7 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
         View.OnClickListener{
 
     //private OnFragmentInteractionListener mListener;
-    private RetroClient retroClient;
+    private YoutubeRetroClient youtubeRetroClient;
     private RecyclerView recyclerView;
     private LinkedHashMap<Integer, Music> musicMap;
     private Button resetBtn, playBtn, saveMusicBtn;
@@ -48,7 +51,9 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
     private HomeRecyclerAdapter homeRecyclerAdapter;
     private ArrayList<Music> musics;
     private static final String API_KEY = "AIzaSyAH-UUr_Y7XKUg7OUy38J1H6paTdbgOqGo";
-    String[] items = {"Basic Playlist", "+새 재생목록 추가"};
+    private SQLiteHelper sqLiteHelper;
+    private String[] titleList;
+    private PlaylistsChangedListener mCallback;
     public static HomeFragment newInstance() {
         HomeFragment homeFragment = new HomeFragment();
 /*        Bundle args = new Bundle();
@@ -67,7 +72,7 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_home, container, false);
-        retroClient = RetroClient.getInstance(getContext()).createBaseApi();
+        youtubeRetroClient = YoutubeRetroClient.getInstance(getContext()).createBaseApi();
 
         recyclerView = (RecyclerView) view.findViewById(R.id.popular_recyclerview);
         linearLayoutManager = new LinearLayoutManager(getActivity());
@@ -85,8 +90,13 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
 
         getPopularSearch();
 
-
+        sqLiteHelper = new SQLiteHelper(getActivity());
+        titleList = sqLiteHelper.selectPlaylistTitle();
         return view;
+    }
+    public interface PlaylistsChangedListener {
+        public void onChangeMusic(Playlist playlist);
+        public void addPlaylist(Playlist playlist);
     }
 
     SelectedMusicProvider selectedMusicProvider = new SelectedMusicProvider() {
@@ -124,7 +134,7 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
 
     void getPopularSearch() {
         Toast.makeText(getActivity(), "검색 결과!", Toast.LENGTH_SHORT).show();
-        retroClient.getPopularSearch(API_KEY, 30, new RetroCallback() {
+        youtubeRetroClient.getPopularSearch(API_KEY, 30, new RetroCallback() {
             @Override
             public void onError(Throwable t) {
                 Log.e("", t.toString());
@@ -195,29 +205,47 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
                 musicMap.clear();
                 break;
             case R.id.playBtn:
-                Gson gson = new Gson();
-                String musicList = gson.toJson(musicMap);
+                //현재 플레이리스트에 저장, 디비에도 저장
+                //MainActivity.getPlaylist(NowPlayingPlaylist.title).setMusics(musicMap);
+                Playlist playlist = MainActivity.getPlaylist(NowPlayingPlaylist.title);
+                playlist.add(musicMap);
+                sqLiteHelper.insert(musicMap, NowPlayingPlaylist.title);
+                //Fragment 통신
+                mCallback.onChangeMusic(playlist);
+
+//                Gson gson = new Gson();
+//                String musicList = gson.toJson(musicMap);
+//                Intent intent = new Intent(getActivity(), PlayerActivity.class);
+//                intent.putExtra("musicInfo", musicList);
+//                startActivity(intent); //parcel 시리얼라이즈
+
                 Intent intent = new Intent(getActivity(), PlayerActivity.class);
-                intent.putExtra("musicInfo", musicList);
+                intent.putParcelableArrayListExtra("musicInfo", playlist.getMusics());
                 startActivity(intent); //parcel 시리얼라이즈
+
+
+                //액티비티 중지되지 않을까?
                 homeRecyclerAdapter.resetMusicList();
                 ViewAnimation.dropDwon(selectingLayout);
                 ViewAnimation.riseUp(((MainActivity) getActivity()).getTabLayout());
                 musicMap.clear();
                 break;
             case R.id.saveMusic:
-
                 AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
                 builder.setTitle("재생목록")
-                        .setItems(items, new DialogInterface.OnClickListener() {
+                        .setItems(titleList, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
-                                if(items.length -1 == which) {
+                                if(titleList.length -1 == which) {
                                     showDialog();
+                                }else {
+                                    //musicMap을 playlist에 저장, 디비에도 저장
+                                    //현재 플레이리스트가 아닌 다른곳에 저장하면 디비에서 음악 가져오고 저장해야함
                                 }
                             }
                         });
                 AlertDialog alertDialog = builder.create();
                 alertDialog.show();
+                break;
         }
     }
     @Override
@@ -229,45 +257,43 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
     }
 
     void showDialog() {
+        //보낼 정보 있으면 보내자
         DialogFragment newFragment = NewPlaylistDialogFragment.newInstance();
         newFragment.show(getFragmentManager(), "dialog");
     }
 
-
-/*    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
-    }
-
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
+        try {
+            mCallback = (PlaylistsChangedListener) context;
+        } catch (ClassCastException e) {
             throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
+                    + " must implement PlaylistChangedListener");
         }
     }
 
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-    }
 
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
-    }*/
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        Log.d("onAttach", "ㅇㅇ");
-    }
+//    // TODO: Rename method, update argument and hook method into UI event
+//    public void onButtonPressed(Uri uri) {
+//        if (mListener != null) {
+//            mListener.onFragmentInteraction(uri);
+//        }
+//    }
+//
+//
+//
+//    @Override
+//    public void onDetach() {
+//        super.onDetach();
+//        mListener = null;
+//    }
+//
+//    public interface OnFragmentInteractionListener {
+//        // TODO: Update argument type and name
+//        void onFragmentInteraction(Uri uri);
+//    }
+//
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {

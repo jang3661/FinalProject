@@ -6,10 +6,7 @@ package com.example.doublejk.laboum.model;
 
 public class MyPlaylist extends Playlist{
 
-    public MyPlaylist(String title, String userName) {
-        super(title, userName);
+    public MyPlaylist(String title, String userEmail, String userName) {
+        super(title, userEmail, userName);
     }
-
-    public void add() {}
-    public void remove() {}
 }

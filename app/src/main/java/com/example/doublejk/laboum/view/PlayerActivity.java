@@ -179,19 +179,27 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         }
     }
     public void receiveDataInit() {
-        Gson gson = new Gson();
-        PlayerMusics = new LinkedHashMap<>();
-        String musicList = getIntent().getStringExtra("musicInfo");
-        Type entityType = new TypeToken<LinkedHashMap<Integer, Music>>(){}.getType();
-        PlayerMusics = gson.fromJson(musicList, entityType);
+//        Gson gson = new Gson();
+//        PlayerMusics = new LinkedHashMap<>();
+//        String musicList = getIntent().getStringExtra("musicInfo");
+//        Type entityType = new TypeToken<LinkedHashMap<Integer, Music>>(){}.getType();
+//        PlayerMusics = gson.fromJson(musicList, entityType);
+//
+//        Iterator<Integer> keys = PlayerMusics.keySet().iterator();
+//        musics = new ArrayList<>();
+//        while (keys.hasNext()) {
+//            final Music music = PlayerMusics.get(keys.next());
+//            musics.add(music);
+//            videoIds.add(music.getVideoId());
+//        }
 
-        Iterator<Integer> keys = PlayerMusics.keySet().iterator();
         musics = new ArrayList<>();
-        while (keys.hasNext()) {
-            final Music music = PlayerMusics.get(keys.next());
-            musics.add(music);
-            videoIds.add(music.getVideoId());
+        musics = getIntent().getParcelableArrayListExtra("musicInfo");
+        for(int i = 0; i < musics.size(); i++) {
+            videoIds.add(musics.get(i).getVideoId());
         }
+
+
     }
 
     @Override

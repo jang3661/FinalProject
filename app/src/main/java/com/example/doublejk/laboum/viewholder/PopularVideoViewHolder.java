@@ -53,7 +53,7 @@ public class PopularVideoViewHolder extends RecyclerView.ViewHolder implements V
 
         popular_imgBtn.setOnClickListener(this);
         linearLayout.setOnClickListener(this);
-
+        Log.d("ViewHolder", "얼마나오냐");
 
 /*        linearLayout.setSelected(false);
         itemView.setBackgroundColor(Color.argb(0, 255, 0, 0));*/

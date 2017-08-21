@@ -40,21 +40,23 @@ public class HomeRecyclerAdapter extends RecyclerView.Adapter<PopularVideoViewHo
 
     @Override
     public PopularVideoViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        Log.d("onCreateView", "얼마나오냐");
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.recyclerview_popular_music, parent, false);
         PopularVideoViewHolder holder = new PopularVideoViewHolder(v, musics, selectedMusicProvider, selectedItems);
         return holder;
     }
 
-    @Override
-    public long getItemId(int position) {
-        return position;
-    }
+//    @Override
+//    public long getItemId(int position) {
+//        return position;
+//    }
+//
+//    @Override
+//    public int getItemViewType(int position) {
+//        return position;
+//    }
 
-    @Override
-    public int getItemViewType(int position) {
-        return position;
-    }
-
+    //클래스 내부에 isSelected 변수 있어야한다. true false 해줘야한다. 여기서 true false 제어
     @Override
     public void onBindViewHolder(PopularVideoViewHolder holder, final int position) {
         Log.d("onBindVIewHolder", "" + position + "얼마나오냐");

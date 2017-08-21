@@ -22,10 +22,9 @@ public class MyTabRecyclerAdapter extends RecyclerView.Adapter<MyTabViewHolder> 
     private ArrayList<Playlist> playlists;
     private Context context;
 
-    public MyTabRecyclerAdapter(Context context, ArrayList<Playlist> playlistses) {
+    public MyTabRecyclerAdapter(Context context, ArrayList<Playlist> playlists) {
         this.context = context;
-        this.playlists = playlistses;
-        Log.d("아아아", playlistses.get(0).getTitle());
+        this.playlists = playlists;
     }
 
     @Override
@@ -37,10 +36,10 @@ public class MyTabRecyclerAdapter extends RecyclerView.Adapter<MyTabViewHolder> 
 
     @Override
     public void onBindViewHolder(MyTabViewHolder holder, int position) {
-        Glide.with(context).load(playlists.get(position).getPlaylistImg()).fitCenter().into(holder.getPlaylistIcon());
+        Glide.with(context).load(playlists.get(position).getMusics().get(0).getImgUrl()).fitCenter().into(holder.getPlaylistIcon());
         Glide.with(context).load(R.drawable.optionmenu).fitCenter().into(holder.getSettingBtn());
         holder.getPlaylistTitle().setText(playlists.get(position).getTitle());
-        holder.getMusicCount().setText(playlists.get(position).getMusicCount());
+        holder.getMusicCount().setText(playlists.get(position).getMusics().size() + " 곡");
     }
 
     @Override

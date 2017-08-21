@@ -22,16 +22,25 @@ import retrofit2.http.Query;
 /**
  * Created by sonchangwoo on 2017. 1. 1..
  */
+//put update, post insert
 
-public interface RetroBaseApiService {
+public interface YoutubeApiService {
 
     final String Base_URL = "https://www.googleapis.com/youtube/v3/";
+    //final String  Base_URL = "http://192.168.10.102:3000/";
 
     @GET("search?part=snippet&type=video&videoCategoryId=10")
     Call<JsonObject> getSearch(@Query("q") String word, @Query("key") String key, @Query("maxResults") int maxResults);
 
     @GET("videos?part=snippet&chart=mostPopular&regionCode=KR&videoCategoryId=10")
     Call<JsonObject> getPopularSearch(@Query("key") String key, @Query("maxResults") int maxResults);
+
+    @GET("activities?part=snippet&home=true")
+    Call<JsonObject> getActivities(@Query("maxResults") int maxResults);
+
+
+    @GET("login")
+    Call<String> getTest();
 
 
     @GET("/posts/{userId}")

@@ -51,7 +51,7 @@ public class MyFragment extends Fragment {
         myRecyclerView.setLayoutManager(linearLayoutManager);
 
         playlists = new ArrayList<>();
-        playlists.add(new Playlist("Basic Playlist", "0"));
+        //playlists.add(new Playlist("Basic Playlist", "0", "0")); //차후 수정
 
         myTabRecyclerAdapter = new MyTabRecyclerAdapter(getActivity(), playlists);
         myRecyclerView.setAdapter(myTabRecyclerAdapter);
@@ -60,4 +60,19 @@ public class MyFragment extends Fragment {
         return view;
     }
 
+    public void updatePlaylist(Playlist playlist){
+        Log.d("update!!", "dd");
+        boolean isPlaylist = false;
+        for(int i = 0; i < playlists.size(); i++) {
+            if(playlists.get(i).getTitle().equals(playlist.getTitle())) {
+                playlists.get(i).setMusics(playlist.getMusics());
+                isPlaylist = true;
+                break;
+            }
+        }
+        if(!isPlaylist) {
+            playlists.add(playlist);
+        }
+        myTabRecyclerAdapter.notifyDataSetChanged();
+    }
 }

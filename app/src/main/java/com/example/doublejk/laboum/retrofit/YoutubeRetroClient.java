@@ -15,38 +15,40 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 /**
  * Created by sonchangwoo on 2017. 1. 6..
  */
 
-public class RetroClient {
+public class YoutubeRetroClient {
 
-    private RetroBaseApiService apiService;
-    public static String baseUrl = RetroBaseApiService.Base_URL;
+    private YoutubeApiService youtubeApiService;
+    public static String baseUrl = YoutubeApiService.Base_URL;
     private static Context mContext;
     private static Retrofit retrofit;
 
     private static class SingletonHolder {
-        private static RetroClient INSTANCE = new RetroClient(mContext);
+        private static YoutubeRetroClient INSTANCE = new YoutubeRetroClient(mContext);
     }
 
-    public static RetroClient getInstance(Context context) {
+    public static YoutubeRetroClient getInstance(Context context) {
         if (context != null) {
             mContext = context;
         }
         return SingletonHolder.INSTANCE;
     }
 
-    private RetroClient(Context context) {
+    private YoutubeRetroClient(Context context) {
         retrofit = new Retrofit.Builder()
+                .addConverterFactory(ScalarsConverterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create())
                 .baseUrl(baseUrl)
                 .build();
     }
 
-    public RetroClient createBaseApi() {
-        apiService = create(RetroBaseApiService.class);
+    public YoutubeRetroClient createBaseApi() {
+        youtubeApiService = create(YoutubeApiService.class);
         return this;
     }
 
@@ -60,8 +62,30 @@ public class RetroClient {
         }
         return retrofit.create(service);
     }
+    public void getTest(final RetroCallback callback) {
+        youtubeApiService.getTest().enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                if (response.isSuccessful()) {
+                    Log.d("롸롸", "" + response.body().toString());
+                    callback.onSuccess(response.code(), response.body());
+
+                } else {
+                    Log.d("롸롸", "Fail" + response.code());
+                    callback.onFailure(response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                Log.d("롸롸", "Fail" + t);
+                callback.onError(t);
+            }
+        });
+    }
+
     public void getPopularSearch(String key, int maxResults, final RetroCallback callback) {
-        apiService.getPopularSearch(key, maxResults).enqueue(new Callback<JsonObject>() {
+        youtubeApiService.getPopularSearch(key, maxResults).enqueue(new Callback<JsonObject>() {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
                 if (response.isSuccessful()) {
@@ -82,8 +106,30 @@ public class RetroClient {
         });
     }
 
+    public void getActivities(int maxResults, final RetroCallback callback) {
+        youtubeApiService.getActivities(maxResults).enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                if (response.isSuccessful()) {
+                    Log.d("getActivities!!", "" + response.body().toString());
+                    callback.onSuccess(response.code(), response.body());
+
+                } else {
+                    Log.d("aaaa", "Fail" + response.code());
+                    callback.onFailure(response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+                Log.d("aaaa", "Fail" + t);
+                callback.onError(t);
+            }
+        });
+    }
+
     public void getSearch(String word, String key, int maxResults, final RetroCallback callback) {
-        apiService.getSearch(word, key, maxResults).enqueue(new Callback<JsonObject>() {
+        youtubeApiService.getSearch(word, key, maxResults).enqueue(new Callback<JsonObject>() {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
                 if (response.isSuccessful()) {
@@ -104,7 +150,7 @@ public class RetroClient {
         });
     }
     public void getFirst(String id, final RetroCallback callback) {
-        apiService.getFirst(id).enqueue(new Callback<ResponseGet>() {
+        youtubeApiService.getFirst(id).enqueue(new Callback<ResponseGet>() {
             @Override
             public void onResponse(Call<ResponseGet> call, Response<ResponseGet> response) {
                 if (response.isSuccessful()) {
@@ -123,7 +169,7 @@ public class RetroClient {
     }
 
     public void getSecond(String id, final RetroCallback callback) {
-        apiService.getSecond(id).enqueue(new Callback<List<ResponseGet>>() {
+        youtubeApiService.getSecond(id).enqueue(new Callback<List<ResponseGet>>() {
             @Override
             public void onResponse(Call<List<ResponseGet>> call, Response<List<ResponseGet>> response) {
                 if (response.isSuccessful()) {
@@ -141,7 +187,7 @@ public class RetroClient {
     }
 
     public void postFirst(HashMap<String, Object> parameters, final RetroCallback callback) {
-        apiService.postFirst(parameters).enqueue(new Callback<ResponseGet>() {
+        youtubeApiService.postFirst(parameters).enqueue(new Callback<ResponseGet>() {
             @Override
             public void onResponse(Call<ResponseGet> call, Response<ResponseGet> response) {
                 if (response.isSuccessful()) {
@@ -159,7 +205,7 @@ public class RetroClient {
     }
 
     public void putFirst(HashMap<String, Object> parameters, final RetroCallback callback) {
-        apiService.putFirst(new RequestPut(parameters)).enqueue(new Callback<ResponseGet>() {
+        youtubeApiService.putFirst(new RequestPut(parameters)).enqueue(new Callback<ResponseGet>() {
             @Override
             public void onResponse(Call<ResponseGet> call, Response<ResponseGet> response) {
                 if (response.isSuccessful()) {
@@ -177,7 +223,7 @@ public class RetroClient {
     }
 
     public void patchFirst(String title, final RetroCallback callback) {
-        apiService.patchFirst(title).enqueue(new Callback<ResponseGet>() {
+        youtubeApiService.patchFirst(title).enqueue(new Callback<ResponseGet>() {
             @Override
             public void onResponse(Call<ResponseGet> call, Response<ResponseGet> response) {
                 if (response.isSuccessful()) {
@@ -195,7 +241,7 @@ public class RetroClient {
     }
 
     public void deleteFirst(final RetroCallback callback) {
-        apiService.deleteFirst().enqueue(new Callback<ResponseBody>() {
+        youtubeApiService.deleteFirst().enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 if (response.isSuccessful()) {
