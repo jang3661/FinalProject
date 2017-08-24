@@ -9,6 +9,7 @@ import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,47 +21,71 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.doublejk.laboum.NowPlayingPlaylist;
 import com.example.doublejk.laboum.R;
+import com.example.doublejk.laboum.SQLiteHelper;
+import com.example.doublejk.laboum.model.Music;
+import com.example.doublejk.laboum.model.Playlist;
+import com.example.doublejk.laboum.model.User;
 
 import org.w3c.dom.Text;
 
+import java.util.LinkedHashMap;
+
 public class NewPlaylistDialogFragment extends DialogFragment implements View.OnClickListener{
 
-    private EditText title;
+    private EditText titleEdit;
     private Button cancel, createPlaylist;
+    private LinkedHashMap<Integer, Music> musics;
+    private SQLiteHelper sqLiteHelper;
+    private onAddPlaylistListener callback;
 
     public NewPlaylistDialogFragment() {
 
     }
     // TODO: Rename and change types and number of parameters
-    public static NewPlaylistDialogFragment newInstance() {
+    public static NewPlaylistDialogFragment newInstance(LinkedHashMap<Integer, Music> musicMap) {
         NewPlaylistDialogFragment fragment = new NewPlaylistDialogFragment();
-/*        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);*/
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("musicMap", musicMap);
+        fragment.setArguments(bundle);
         return fragment;
     }
 
-/*    @Override
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        try {
+            callback = (onAddPlaylistListener) context;
+        }catch (ClassCastException e) {
+            throw new RuntimeException(context.toString() + " must implement onAddPlaylistListener");
+        }
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+            musics = (LinkedHashMap<Integer, Music>) getArguments().getSerializable("musicMap");
         }
-    }*/
+    }
+
+    public interface onAddPlaylistListener {
+        public void addNewPlaylist(Playlist playlist);
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
         View v = inflater.inflate(R.layout.fragment_save_dialog, container, false);
+        Log.d("해오", ""+getActivity());
 
-        title = (EditText) v.findViewById(R.id.dialog_editText);
+        titleEdit = (EditText) v.findViewById(R.id.dialog_editText);
         createPlaylist = (Button) v.findViewById(R.id.dialog_create);
         cancel = (Button) v.findViewById(R.id.dialog_cancel);
 
-        title.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+        sqLiteHelper = new SQLiteHelper(getActivity());
+        titleEdit.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if (hasFocus) {
@@ -69,11 +94,9 @@ public class NewPlaylistDialogFragment extends DialogFragment implements View.On
             }
         });
 
-        title.addTextChangedListener(new TextWatcher() {
+        titleEdit.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -84,9 +107,7 @@ public class NewPlaylistDialogFragment extends DialogFragment implements View.On
             }
 
             @Override
-            public void afterTextChanged(Editable s) {
-
-            }
+            public void afterTextChanged(Editable s) { }
         });
 
         createPlaylist.setOnClickListener(this);
@@ -101,7 +122,19 @@ public class NewPlaylistDialogFragment extends DialogFragment implements View.On
                 getDialog().cancel();
                 break;
             case R.id.dialog_create:
-                Toast.makeText(getContext(), "만들기", Toast.LENGTH_SHORT);
+                //edit text 제한, 담기만 하면된다, 재생할 필요없다.
+                String title = titleEdit.getText().toString();
+                User user = MainActivity.getUser();
+                Playlist playlist = new Playlist(title, user.getEmail(), user.getName());
+                playlist.setMusics(musics);
+                Log.d("안왔냐", "d" + musics.size());
+                MainActivity.getPlaylists().put(title, playlist);
+                //NowPlayingPlaylist.title = title;
+                sqLiteHelper.insert(playlist);
+                sqLiteHelper.insert(musics, title);
+                callback.addNewPlaylist(playlist);
+
+                Toast.makeText(getActivity(), title + "이(가) 생성되었습니다.", Toast.LENGTH_SHORT).show();
                 getDialog().dismiss();
                 break;
         }

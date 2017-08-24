@@ -1,5 +1,7 @@
 package com.example.doublejk.laboum.view;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.RecyclerView;
@@ -7,16 +9,27 @@ import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
+import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.example.doublejk.laboum.NowPlayingPlaylist;
 import com.example.doublejk.laboum.R;
 import com.example.doublejk.laboum.RecyclerItemClickListener;
+import com.example.doublejk.laboum.adapter.HomeRecyclerAdapter;
 import com.example.doublejk.laboum.adapter.PlayerRecyclerAdapter;
 import com.example.doublejk.laboum.model.Music;
+import com.example.doublejk.laboum.model.Playlist;
+import com.example.doublejk.laboum.model.Room;
+import com.example.doublejk.laboum.retrofit.NodeRetroClient;
+import com.example.doublejk.laboum.retrofit.RetroCallback;
+import com.example.doublejk.laboum.retrofit.YoutubeRetroClient;
 import com.example.doublejk.laboum.util.DimensionConverter;
 import com.example.doublejk.laboum.util.GlidePalette;
 import com.google.android.youtube.player.YouTubeBaseActivity;
@@ -35,7 +48,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer.OnInitializedListener,
-        YouTubePlayer.OnFullscreenListener, View.OnClickListener, SeekBar.OnSeekBarChangeListener {
+        YouTubePlayer.OnFullscreenListener, View.OnClickListener, SeekBar.OnSeekBarChangeListener, CompoundButton.OnCheckedChangeListener{
     YouTubePlayerView youTubePlayerView;
     static final String YOUTUBE_KEY = "AIzaSyBwqHpHu9AwlEfiIVKcJ4rsBWOfgP6WmB0";
     private RecyclerView recyclerView;
@@ -51,21 +64,31 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
     private FrameLayout playerLayout;
     private LinearLayout divider;
     private Window window;
-    private ImageButton playBtn, previousBtn, nextBtn, fullSreenBtn;
-    private TextView currentTimeTv, durationTv;
+    private ImageButton playBtn, previousBtn, nextBtn, fullSreenBtn, randomBtn, repeatBtn;
+    private TextView currentTimeTv, durationTv, playlistName, userName;
     private SeekBar seekBar;
     private TimerTask timerTask;
     private Timer timer;
-    private boolean isPlayStarted, doTouchPlayer;
+    private Switch shareSwith;
+    private Playlist playlist;
+    private boolean isPlayStarted, doTouchPlayer, isClickedRandomBtn;
+    private int stateFlag;
+    private NodeRetroClient nodeRetroClient;
+    private SharedPreferences sp;
+    private SharedPreferences.Editor editor;
+    private Room myRoom;
 
-    private final int REPEAT_PLAY = 0;
-    private final int ONE_REPEAT_PLAY = 1;
-    private final int RANDOM_PLAY = 2;
+    private final int ORDINARY_PLAY = 0;
+    private final int REPEAT_PLAY = 1;
+    private final int ONE_REPEAT_PLAY = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_player);
+
+        Log.d("onCreate", "오오");
+        nodeRetroClient = NodeRetroClient.getInstance(this).createBaseApi();
 
         videoIds = new ArrayList<>();
         glidePalette = new GlidePalette();
@@ -79,12 +102,20 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         currentTimeTv = (TextView) findViewById(R.id.currentTimeTv);
         durationTv = (TextView) findViewById(R.id.durationTv);
         seekBar = (SeekBar) findViewById(R.id.seekbar);
+        playlistName = (TextView) findViewById(R.id.player_playlist_name);
+        userName = (TextView) findViewById(R.id.player_user_name);
+        randomBtn = (ImageButton) findViewById(R.id.randomBtn);
+        repeatBtn = (ImageButton) findViewById(R.id.repeatBtn);
+        shareSwith = (Switch) findViewById(R.id.share_switch);
 
         playBtn.setOnClickListener(this);
         nextBtn.setOnClickListener(this);
         previousBtn.setOnClickListener(this);
         fullSreenBtn.setOnClickListener(this);
+        randomBtn.setOnClickListener(this);
+        repeatBtn.setOnClickListener(this);
         seekBar.setOnSeekBarChangeListener(this);
+        shareSwith.setOnCheckedChangeListener(this);
 
         receiveDataInit();
 
@@ -122,6 +153,37 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         youTubePlayerView.initialize(YOUTUBE_KEY, this);
 
         timer = new Timer();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        SharedPreferences sf = getSharedPreferences("pref", 0);
+        stateFlag = sf.getInt("stateFlag", 0);
+        if (stateFlag == ORDINARY_PLAY) {
+            repeatBtn.setImageResource(R.drawable.unrepeatbtn);
+        } else if (stateFlag == REPEAT_PLAY) {
+            repeatBtn.setImageResource(R.drawable.repeatbtn);
+        } else {
+            repeatBtn.setImageResource(R.drawable.onerepeatbtn);
+        }
+        isClickedRandomBtn = sf.getBoolean("randomBtn", false);
+        if(isClickedRandomBtn) {
+            randomBtn.setImageResource(R.drawable.randombtn);
+        }else {
+            randomBtn.setImageResource(R.drawable.unrandombtn);
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        SharedPreferences sf = getSharedPreferences("pref", 0);
+        editor = sf.edit();
+        editor.putInt("stateFlag", stateFlag);
+        editor.putBoolean("randomBtn", isClickedRandomBtn);
+        editor.commit();
+        playBtn.setImageResource(R.drawable.playbtn);
     }
 
     public TimerTask timerTaskMaker() {
@@ -177,6 +239,8 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
             //나중에 다른곳도 추가해줘야한다. 재생목록 추가삭제할때
             recyclerView.setPadding(0, 0, 0, DimensionConverter.dpToPx(72));
         }
+        playlistName.setText(playlist.getTitle());
+        userName.setText(playlist.getUserName());
     }
     public void receiveDataInit() {
 //        Gson gson = new Gson();
@@ -193,13 +257,16 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
 //            videoIds.add(music.getVideoId());
 //        }
 
-        musics = new ArrayList<>();
-        musics = getIntent().getParcelableArrayListExtra("musicInfo");
+//        musics = new ArrayList<>();
+//        musics = getIntent().getParcelableArrayListExtra("musicInfo");
+//        for(int i = 0; i < musics.size(); i++) {
+//            videoIds.add(musics.get(i).getVideoId());
+//        }
+        playlist = getIntent().getParcelableExtra("playlist");
+        musics = playlist.getMusics();
         for(int i = 0; i < musics.size(); i++) {
             videoIds.add(musics.get(i).getVideoId());
         }
-
-
     }
 
     @Override
@@ -266,6 +333,28 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
             case R.id.fullscreenBtn:
                 youTubePlayer.setPlayerStyle(YouTubePlayer.PlayerStyle.DEFAULT);
                 youTubePlayer.setFullscreen(true);
+                break;
+            case R.id.repeatBtn:
+                if(stateFlag == ORDINARY_PLAY) {
+                    stateFlag = REPEAT_PLAY;
+                    repeatBtn.setImageResource(R.drawable.repeatbtn);
+                }else if(stateFlag == REPEAT_PLAY) {
+                    stateFlag = ONE_REPEAT_PLAY;
+                    repeatBtn.setImageResource(R.drawable.onerepeatbtn);
+                }else {
+                    stateFlag = ORDINARY_PLAY;
+                    repeatBtn.setImageResource(R.drawable.unrepeatbtn);
+                }
+                break;
+            case R.id.randomBtn:
+                if(isClickedRandomBtn) {
+                    randomBtn.setImageResource(R.drawable.unrandombtn);
+                    isClickedRandomBtn = false;
+                }else {
+                    randomBtn.setImageResource(R.drawable.randombtn);
+                    isClickedRandomBtn = true;
+                }
+                break;
         }
     }
 
@@ -308,6 +397,60 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         timer.schedule(timerTask, 500, 300);*/
 }
 
+    //switch
+    @Override
+    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        myRoom = new Room("뀨뀨", playlist.getUserEmail(), playlist.getUserName(), playlist.getTitle());
+        if(isChecked) {
+            //방이름 보내야한다. 서버로 전송!
+            //어차피 현재상태에서 방목록 못본다.
+            postCreateRoom(myRoom);
+            //playlist랑 music정보도 보내야지
+            Toast.makeText(this, "방을 공유하였습니다.", Toast.LENGTH_SHORT).show();
+        }else {
+            postDeleteRoom(myRoom);
+        }
+    }
+    public void postCreateRoom(Room room) {
+        Toast.makeText(this, "검색 결과!", Toast.LENGTH_SHORT).show();
+        nodeRetroClient.postCreateRoom(room, new RetroCallback() {
+            @Override
+            public void onError(Throwable t) {
+                Log.e("onError", t.toString());
+            }
+
+            @Override
+            public void onSuccess(int code, Object receivedData) {
+                Log.d("onSuccess", "" + code + " " + receivedData.toString());
+            }
+
+            @Override
+            public void onFailure(int code) {
+                Log.d("onFailure", "" + code);
+            }
+        });
+    }
+
+    public void postDeleteRoom(Room room) {
+        Toast.makeText(this, "검색 결과!", Toast.LENGTH_SHORT).show();
+        nodeRetroClient.postDeleteRoom(room, new RetroCallback() {
+            @Override
+            public void onError(Throwable t) {
+                Log.e("onError", t.toString());
+            }
+
+            @Override
+            public void onSuccess(int code, Object receivedData) {
+                Log.d("onSuccess", "" + code + " " + receivedData.toString());
+            }
+
+            @Override
+            public void onFailure(int code) {
+                Log.d("onFailure", "" + code);
+            }
+        });
+    }
+
     private final class MyPlaybackEventListener implements YouTubePlayer.PlaybackEventListener {
 
         @Override
@@ -324,7 +467,6 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
                 timerTask = timerTaskMaker();
                 timer.schedule(timerTask, 0, 300);
             }
-
         }
 
         @Override
@@ -378,7 +520,21 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         public void onVideoEnded() {
             showLog("onVideoEnded");
             if(!doTouchPlayer) {
-                updateData(playerRecyclerAdapter.getPlayingMusicPostion() + 1);
+                if(stateFlag == ONE_REPEAT_PLAY) {
+                    youTubePlayer.loadVideos(videoIds, playerRecyclerAdapter.getPlayingMusicPostion(), 0);
+                }else {
+                    //자동play도 배경 update해줘야 함, 랜덤일때 이럼 안된다.
+                    if(playerRecyclerAdapter.getPlayingMusicPostion() < videoIds.size() -1) {
+                        updateData(playerRecyclerAdapter.getPlayingMusicPostion() + 1);
+                    }else { //마지막곡
+                        if(stateFlag == ORDINARY_PLAY) {
+                            playBtn.setImageResource(R.drawable.playbtn);
+                        }else if(stateFlag == REPEAT_PLAY) {
+                            updateData(0);
+                            youTubePlayer.loadVideos(videoIds, 0, 0);
+                        }
+                    }
+                }
             }
             doTouchPlayer = false;
         }
@@ -404,6 +560,12 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         @Override
         public void onPlaylistEnded() {
             showLog("onPlaylistEnded!");
+            if(stateFlag == REPEAT_PLAY && playerRecyclerAdapter.getPlayingMusicPostion() == videoIds.size() -1) {
+//                //랜덤일때 제어해줘야함
+
+            }else if(stateFlag == ONE_REPEAT_PLAY) {
+
+            }
         }
     }
 

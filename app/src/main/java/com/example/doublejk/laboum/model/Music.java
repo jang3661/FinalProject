@@ -14,12 +14,15 @@ public class Music implements Parcelable{
     private boolean isSelected;
     private PaletteColor paletteColor;
 
-    public Music() {}
+    public Music() {
+        this.paletteColor = new PaletteColor();
+    }
 
     public Music(String videoId, String title, String imgUrl) {
         this.videoId = videoId;
         this.title = title;
         this.imgUrl = imgUrl;
+        this.paletteColor = new PaletteColor();
     }
 
     protected Music(Parcel in) {

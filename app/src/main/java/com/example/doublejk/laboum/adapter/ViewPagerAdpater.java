@@ -6,8 +6,12 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.util.Log;
 
+import com.example.doublejk.laboum.model.Playlist;
 import com.example.doublejk.laboum.view.HomeFragment;
 import com.example.doublejk.laboum.view.MyFragment;
+import com.example.doublejk.laboum.view.ShareFragment;
+
+import java.util.HashMap;
 
 /**
  * Created by doublejk on 2017-08-07.
@@ -15,10 +19,16 @@ import com.example.doublejk.laboum.view.MyFragment;
 
 public class ViewPagerAdpater extends FragmentStatePagerAdapter{
 
-    int tabCount;
+    private int tabCount;
+    private HashMap<String, Playlist> playlists;
+
     public ViewPagerAdpater(FragmentManager fm, int tabCount) {
         super(fm);
         this.tabCount = tabCount;
+    }
+
+    public void setPlaylist(HashMap<String, Playlist> playlists) {
+        this.playlists = playlists;
     }
 
     @Override
@@ -37,14 +47,15 @@ public class ViewPagerAdpater extends FragmentStatePagerAdapter{
 
     @Override
     public Fragment getItem(int position) {
-        Log.d("겟아이템" ,"getItem");
+        Log.d("프래그먼트" ,"getItem");
         switch (position) {
             case 0:
                 return HomeFragment.newInstance();
             case 1:
-                return MyFragment.newInstance();
+                Log.d("프래그먼트" ,"getItem");
+                return MyFragment.newInstance(playlists);
             case 2:
-                return HomeFragment.newInstance();
+                return ShareFragment.newInstance();
             default:
                     return null;
         }

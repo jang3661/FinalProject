@@ -12,7 +12,6 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-
         <com.google.android.youtube.player.YouTubePlayerView
             android:id="@+id/youtube_view"
             android:layout_width="match_parent"
@@ -33,6 +32,7 @@
                 android:orientation="vertical">
 
                 <TextView
+                    android:id="@+id/player_playlist_name"
                     android:layout_width="wrap_content"
                     android:layout_height="0dp"
                     android:layout_weight="1"
@@ -40,6 +40,7 @@
                     android:textColor="#FFF"/>
 
                 <TextView
+                    android:id="@+id/player_user_name"
                     android:layout_width="wrap_content"
                     android:layout_height="0dp"
                     android:layout_weight="1"
@@ -122,8 +123,11 @@
             android:gravity="center">
 
             <ImageButton
+                android:id="@+id/repeatBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:src="@drawable/unrepeatbtn"
+                android:scaleType="fitCenter"
                 android:background="@null"/>
 
             <ImageButton
@@ -151,8 +155,11 @@
                 android:background="@null"/>
 
             <ImageButton
+                android:id="@+id/randomBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:src="@drawable/unrandombtn"
+                android:scaleType="fitCenter"
                 android:background="@null"/>
         </LinearLayout>
     </LinearLayout>

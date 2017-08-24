@@ -13,6 +13,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Display;
 import android.view.KeyEvent;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
@@ -64,6 +65,7 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
         getSupportActionBar().setTitle("Raboum");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true); //화살표
 
+
         recyclerView = (RecyclerView) findViewById(R.id.search_recyclerview);
         linearLayout = new LinearLayoutManager(this);
         linearLayout.setOrientation(LinearLayoutManager.VERTICAL);
@@ -94,6 +96,15 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
             }
         });
     }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     SelectedMusicProvider selectedMusicProvider = new SelectedMusicProvider() {
         @Override
         public void selectedList(int pos, Music music) {

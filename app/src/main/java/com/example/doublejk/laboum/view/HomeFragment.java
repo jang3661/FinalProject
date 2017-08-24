@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
@@ -13,11 +14,14 @@ import android.support.v7.widget.ActionMenuView;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -54,6 +58,7 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
     private SQLiteHelper sqLiteHelper;
     private String[] titleList;
     private PlaylistsChangedListener mCallback;
+    private Boolean getViewSize;
     public static HomeFragment newInstance() {
         HomeFragment homeFragment = new HomeFragment();
 /*        Bundle args = new Bundle();
@@ -92,8 +97,11 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
 
         sqLiteHelper = new SQLiteHelper(getActivity());
         titleList = sqLiteHelper.selectPlaylistTitle();
+
+        getViewSize = true; //animation
         return view;
     }
+
     public interface PlaylistsChangedListener {
         public void onChangeMusic(Playlist playlist);
         public void addPlaylist(Playlist playlist);
@@ -102,13 +110,15 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
     SelectedMusicProvider selectedMusicProvider = new SelectedMusicProvider() {
         @Override
         public void selectedList(int pos, Music music) {
+            if(getViewSize) {
+                ViewAnimation.init(((MainActivity) getActivity()).getTabLayout(), selectingLayout);
+                getViewSize = false;
+            }
             Log.d("selected","호출");
-/*            if(selectingLayout.getVisibility() == View.GONE) {public static void
-                selectingLayout.setVisibility(View.VISIBLE);
-            }*/
             if(musicMap.size() == 0) {
-                ViewAnimation.dropDwon(((MainActivity) getActivity()).getTabLayout());
-                ViewAnimation.riseUp(selectingLayout);
+                ViewAnimation.tabToSelectLayout(((MainActivity) getActivity()).getTabLayout(), selectingLayout);
+//                ViewAnimation.dropDwon(((MainActivity) getActivity()).getTabLayout());
+//                ViewAnimation.riseUp(selectingLayout);
             }
             musicMap.put(pos, music);
         }
@@ -118,8 +128,9 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
             Log.d("unselected","호출");
             musicMap.remove(pos);
             if(musicMap.size() == 0) {
-                ViewAnimation.dropDwon(selectingLayout);
-                ViewAnimation.riseUp(((MainActivity) getActivity()).getTabLayout());
+                ViewAnimation.selectLayoutToTab(selectingLayout, ((MainActivity) getActivity()).getTabLayout());
+//                ViewAnimation.dropDwon(selectingLayout);
+//                ViewAnimation.riseUp(((MainActivity) getActivity()).getTabLayout());
             }
         }
     };
@@ -132,7 +143,17 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
 
     }
 
-    void getPopularSearch() {
+    public void setTitleList(String[] titleList) {
+        this.titleList = titleList;
+    }
+
+    public void initAnimation() {
+        homeRecyclerAdapter.resetMusicList();
+        ViewAnimation.selectLayoutToTab(selectingLayout, ((MainActivity) getActivity()).getTabLayout());
+        musicMap.clear();
+    }
+
+    public void getPopularSearch() {
         Toast.makeText(getActivity(), "검색 결과!", Toast.LENGTH_SHORT).show();
         youtubeRetroClient.getPopularSearch(API_KEY, 30, new RetroCallback() {
             @Override
@@ -144,7 +165,7 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
             public void onSuccess(int code, Object receivedData) {
                 musics = (ArrayList<Music>) receivedData;
                 //멀티쓰레드 돌린다.
-                new UriToPalette().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, musics);
+                //new UriToPalette().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, musics);
                 //new UriToPalette().execute(musics);
                 homeRecyclerAdapter = new HomeRecyclerAdapter(getActivity(), musics, selectedMusicProvider);
                 recyclerView.setAdapter(homeRecyclerAdapter);
@@ -165,29 +186,29 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
         });
     }
 
-     public class UriToPalette extends AsyncTask<ArrayList<Music>, Void, ArrayList<Music>> {
-
-        @Override
-        protected ArrayList<Music> doInBackground(ArrayList<Music>... params) {
-            ArrayList<Music> items = params[0];
-            for(int i = 0; i < items.size(); i++)
-                    UrlToColor.setColor(items.get(i));
-            return items;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-
-         @Override
-         protected void onPostExecute(ArrayList<Music> items) {
-             super.onPostExecute(items);
-             musics = items;
-             //homeRecyclerAdapter.notifyDataSetChanged();
-             Log.d("ㅇㅇ", "성공");
-         }
-     }
+//     public class UriToPalette extends AsyncTask<ArrayList<Music>, Void, ArrayList<Music>> {
+//
+//        @Override
+//        protected ArrayList<Music> doInBackground(ArrayList<Music>... params) {
+//            ArrayList<Music> items = params[0];
+//            for(int i = 0; i < items.size(); i++)
+//                    UrlToColor.setColor(items.get(i));
+//            return items;
+//        }
+//
+//        @Override
+//        protected void onPreExecute() {
+//            super.onPreExecute();
+//        }
+//
+//         @Override
+//         protected void onPostExecute(ArrayList<Music> items) {
+//             super.onPostExecute(items);
+//             musics = items;
+//             //homeRecyclerAdapter.notifyDataSetChanged();
+//             Log.d("ㅇㅇ", "성공");
+//         }
+//     }
 
     @Override
     public boolean onMenuItemClick(MenuItem item) {
@@ -200,17 +221,17 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
             case R.id.resetBtn:
                 //클릭한 배경색 초기화, selected false
                 homeRecyclerAdapter.resetMusicList();
-                ViewAnimation.dropDwon(selectingLayout);
-                ViewAnimation.riseUp(((MainActivity) getActivity()).getTabLayout());
+                ViewAnimation.selectLayoutToTab(selectingLayout, ((MainActivity) getActivity()).getTabLayout());
                 musicMap.clear();
                 break;
             case R.id.playBtn:
                 //현재 플레이리스트에 저장, 디비에도 저장
                 //MainActivity.getPlaylist(NowPlayingPlaylist.title).setMusics(musicMap);
                 Playlist playlist = MainActivity.getPlaylist(NowPlayingPlaylist.title);
+                Log.d("select", playlist.getTitle() + " " + musicMap.size());
                 playlist.add(musicMap);
                 sqLiteHelper.insert(musicMap, NowPlayingPlaylist.title);
-                //Fragment 통신
+                //myFragment 갱신, 선택한 곡들 추가
                 mCallback.onChangeMusic(playlist);
 
 //                Gson gson = new Gson();
@@ -219,16 +240,16 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
 //                intent.putExtra("musicInfo", musicList);
 //                startActivity(intent); //parcel 시리얼라이즈
 
+//                Intent intent = new Intent(getActivity(), PlayerActivity.class);
+//                intent.putParcelableArrayListExtra("musicInfo", playlist.getMusics());
+//                startActivity(intent); //parcel 시리얼라이즈
+
                 Intent intent = new Intent(getActivity(), PlayerActivity.class);
-                intent.putParcelableArrayListExtra("musicInfo", playlist.getMusics());
+                intent.putExtra("playlist", playlist);
                 startActivity(intent); //parcel 시리얼라이즈
 
-
                 //액티비티 중지되지 않을까?
-                homeRecyclerAdapter.resetMusicList();
-                ViewAnimation.dropDwon(selectingLayout);
-                ViewAnimation.riseUp(((MainActivity) getActivity()).getTabLayout());
-                musicMap.clear();
+                initAnimation();
                 break;
             case R.id.saveMusic:
                 AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
@@ -236,10 +257,17 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
                         .setItems(titleList, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
                                 if(titleList.length -1 == which) {
+                                    //새 재생목록에 추가
                                     showDialog();
                                 }else {
+                                    //기존 재생목록에 추가
+                                    Playlist clickedPlaylist = MainActivity.getPlaylist(titleList[which]);
+                                    clickedPlaylist.setMusics(musicMap);
+                                    sqLiteHelper.insert(musicMap, clickedPlaylist.getTitle());
+                                    //기존재생목록이 nowPlayling이면 추가한 노래 재생해야한다
+                                    initAnimation();
                                     //musicMap을 playlist에 저장, 디비에도 저장
-                                    //현재 플레이리스트가 아닌 다른곳에 저장하면 디비에서 음악 가져오고 저장해야함
+
                                 }
                             }
                         });
@@ -258,8 +286,10 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
 
     void showDialog() {
         //보낼 정보 있으면 보내자
-        DialogFragment newFragment = NewPlaylistDialogFragment.newInstance();
+        Log.d("오오", ""+musicMap.size());
+        DialogFragment newFragment = NewPlaylistDialogFragment.newInstance(musicMap);
         newFragment.show(getFragmentManager(), "dialog");
+        titleList = sqLiteHelper.selectPlaylistTitle();
     }
 
     @Override
@@ -273,7 +303,9 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
         }
     }
 
-
+    public LinearLayout getSelectingLayout() {
+        return selectingLayout;
+    }
 //    // TODO: Rename method, update argument and hook method into UI event
 //    public void onButtonPressed(Uri uri) {
 //        if (mListener != null) {
@@ -304,7 +336,7 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
     @Override
     public void onStart() {
         super.onStart();
-        Log.d("onStart", "ㅇㅇ");
+         Log.d("onStart", "ㅇㅇ");
     }
 
     @Override

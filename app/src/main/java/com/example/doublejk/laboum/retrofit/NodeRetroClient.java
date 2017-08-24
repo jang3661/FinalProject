@@ -3,6 +3,7 @@ package com.example.doublejk.laboum.retrofit;
 import android.content.Context;
 import android.util.Log;
 
+import com.example.doublejk.laboum.model.Room;
 import com.example.doublejk.laboum.model.User;
 import com.google.gson.JsonObject;
 
@@ -60,6 +61,49 @@ public class NodeRetroClient {
             throw new RuntimeException("Api service is null!");
         }
         return retrofit.create(service);
+    }
+    public void postDeleteRoom(Room room, final RetroCallback callback) {
+        nodeNetworkService.postDeleteRoom(room).enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                if (response.isSuccessful()) {
+                    Log.d("deleteRoom", "" + response.body().toString());
+                    callback.onSuccess(response.code(), response.body());
+
+                } else {
+                    Log.d("deleteRoom", "Fail" + response.code());
+                    callback.onFailure(response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                Log.d("deleteRoom", "" + t.toString());
+                callback.onError(t);
+            }
+        });
+    }
+
+    public void postCreateRoom(Room room, final RetroCallback callback) {
+        nodeNetworkService.postCreateRoom(room).enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                if (response.isSuccessful()) {
+                    Log.d("createRoom", "" + response.body().toString());
+                    callback.onSuccess(response.code(), response.body());
+
+                } else {
+                    Log.d("createRoom", "Fail" + response.code());
+                    callback.onFailure(response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                Log.d("createRoom", "" + t.toString());
+                callback.onError(t);
+            }
+        });
     }
 
     public void postLogin(User user, final RetroCallback callback) {

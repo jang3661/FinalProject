@@ -29,18 +29,26 @@
                 android:background="#000000"
                 app:layout_collapseMode="pin"
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-                app:titleTextColor="#FF0000"
+                app:titleTextColor="#FFF"
                 app:titleMarginTop="16dp" >
 
+                <ImageView
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:src="@drawable/icon"
+                    android:layout_marginLeft="16dp"
+                    android:layout_gravity="center_horizontal|left"
+                    android:scaleType="fitCenter"/>
+
                 <ImageButton
-                    android:id="@+id/toolbar_imgBtn"
+                    android:id="@+id/toolbar_searchBtn"
                     android:layout_width="36dp"
                     android:layout_height="36dp"
                     android:layout_gravity="center_horizontal|right"
                     android:layout_marginRight="16dp"
                     android:scaleType="fitCenter"
                     android:background="#00FF0000"
-                    android:src="@drawable/search"/>
+                    android:src="@drawable/searchbtn"/>
             </android.support.v7.widget.Toolbar>
             <!--android:layout_height="?attr/actionBarSize"-->
 

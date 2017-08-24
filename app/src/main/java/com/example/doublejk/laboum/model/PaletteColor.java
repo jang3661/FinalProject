@@ -13,7 +13,12 @@ public class PaletteColor implements Parcelable{
     private int mutedRgb;
     private int darkMutedRgb;
 
-    public PaletteColor() {}
+    public PaletteColor() {
+        this.vibrantRgb = 0;
+        this.darkVibrantRgb = 0;
+        this.mutedRgb = 0;
+        this.darkMutedRgb = 0;
+    }
 
     public PaletteColor(PaletteColor paletteColor) {
         this.vibrantRgb = paletteColor.getVibrantRgb();

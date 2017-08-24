@@ -1,5 +1,7 @@
 package com.example.doublejk.laboum.retrofit;
 
+import android.util.Log;
+
 import com.example.doublejk.laboum.model.Music;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -32,6 +34,8 @@ public class JsonParsing {
                 music.setImgUrl(subString(jsonArray.get(i).getAsJsonObject().get("snippet")
                         .getAsJsonObject().get("thumbnails").getAsJsonObject().get("medium")
                         .getAsJsonObject().get("url").toString()));
+                music.setTitle(music.getTitle().replaceAll("\'", ""));
+                Log.d("타이틀", music.getTitle());
                 musics.add(music);
             }
         }
@@ -48,6 +52,8 @@ public class JsonParsing {
             music.setImgUrl(subString(jsonArray.get(i).getAsJsonObject().get("snippet")
                     .getAsJsonObject().get("thumbnails").getAsJsonObject().get("medium")
                     .getAsJsonObject().get("url").toString()));
+            music.setTitle(music.getTitle().replaceAll("\'", ""));
+            Log.d("타이틀", music.getTitle());
             musics.add(music);
         }
         return musics;

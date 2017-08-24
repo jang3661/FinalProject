@@ -1,6 +1,7 @@
 package com.example.doublejk.laboum.adapter;
 
 import android.content.Context;
+import android.provider.MediaStore;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -36,12 +37,18 @@ public class MyTabRecyclerAdapter extends RecyclerView.Adapter<MyTabViewHolder> 
 
     @Override
     public void onBindViewHolder(MyTabViewHolder holder, int position) {
-        Glide.with(context).load(playlists.get(position).getMusics().get(0).getImgUrl()).fitCenter().into(holder.getPlaylistIcon());
+       // Log.d("왔썹", "ㅇ"+playlists.size() + " " + position + " " + playlists.get(position).getTitle() + " " + playlists.get(position).getMusics().size());
+        if(playlists.get(position).getMusics().size() != 0) {
+            Glide.with(context).load(playlists.get(position).getMusics().get(0).getImgUrl()).fitCenter().into(holder.getPlaylistIcon());
+        }else {
+            Glide.with(context).load(R.drawable.temp).fitCenter().into(holder.getPlaylistIcon());
+        }
         Glide.with(context).load(R.drawable.optionmenu).fitCenter().into(holder.getSettingBtn());
         holder.getPlaylistTitle().setText(playlists.get(position).getTitle());
         holder.getMusicCount().setText(playlists.get(position).getMusics().size() + " 곡");
     }
 
     @Override
-    public int getItemCount() { return playlists.size(); }
+    public int getItemCount() {
+        return playlists.size(); }
 }

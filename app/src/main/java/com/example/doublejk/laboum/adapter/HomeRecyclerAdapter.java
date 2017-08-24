@@ -46,15 +46,15 @@ public class HomeRecyclerAdapter extends RecyclerView.Adapter<PopularVideoViewHo
         return holder;
     }
 
-//    @Override
-//    public long getItemId(int position) {
-//        return position;
-//    }
-//
-//    @Override
-//    public int getItemViewType(int position) {
-//        return position;
-//    }
+    @Override
+    public long getItemId(int position) {
+        return position;
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        return position;
+    }
 
     //클래스 내부에 isSelected 변수 있어야한다. true false 해줘야한다. 여기서 true false 제어
     @Override
@@ -67,8 +67,29 @@ public class HomeRecyclerAdapter extends RecyclerView.Adapter<PopularVideoViewHo
                 super.onResourceReady(bitmap, glideAnimation);
 
                 Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
-                    public void onGenerated(Palette p) {
-
+                    public void onGenerated(Palette palette) {
+                        if (palette != null) {
+                            Palette.Swatch vibrantSwatch = palette.getVibrantSwatch();
+                            if (vibrantSwatch != null) {
+                                musics.get(position).getPaletteColor().setVibrantRgb(vibrantSwatch.getRgb());
+                                Log.d("vibrant", "과연" +position);
+                            }
+                            Palette.Swatch darkVibrantSwatch = palette.getDarkVibrantSwatch();
+                            if (darkVibrantSwatch != null) {
+                                musics.get(position).getPaletteColor().setDarkVibrantRgb(darkVibrantSwatch.getRgb());
+                                Log.d("darkVibrant", "과연"+position);
+                            }
+                            Palette.Swatch mutedSwatch = palette.getMutedSwatch();
+                            if (mutedSwatch != null) {
+                                musics.get(position).getPaletteColor().setMutedRgb(mutedSwatch.getRgb());
+                                Log.d("muted", "과연"+position);
+                            }
+                            Palette.Swatch darkMutedSwatch = palette.getDarkMutedSwatch();
+                            if (darkMutedSwatch != null) {
+                                musics.get(position).getPaletteColor().setDarkMutedRgb(darkMutedSwatch.getRgb());
+                                Log.d("darkMuted", "과연"+position);
+                            }
+                        }
                     }
                 });
             }
