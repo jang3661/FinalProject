@@ -1,23 +1,16 @@
 package com.example.doublejk.laboum.view;
 
-import android.animation.ObjectAnimator;
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.TabLayout;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.View;
-import android.view.animation.AccelerateInterpolator;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
-import com.example.doublejk.laboum.NowPlayingPlaylist;
 import com.example.doublejk.laboum.R;
 import com.example.doublejk.laboum.SQLiteHelper;
 import com.example.doublejk.laboum.adapter.ViewPagerAdpater;
@@ -26,12 +19,9 @@ import com.example.doublejk.laboum.model.Playlist;
 import com.example.doublejk.laboum.model.Room;
 import com.example.doublejk.laboum.model.User;
 import com.example.doublejk.laboum.retrofit.FCMRetroClient;
-import com.example.doublejk.laboum.retrofit.FirebaseMessage;
+import com.example.doublejk.laboum.firebase.FirebaseMessage;
 import com.example.doublejk.laboum.retrofit.NodeRetroClient;
 import com.example.doublejk.laboum.retrofit.RetroCallback;
-import com.example.doublejk.laboum.retrofit.YoutubeRetroClient;
-import com.example.doublejk.laboum.util.ViewAnimation;
-import com.google.firebase.crash.FirebaseCrash;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,7 +38,6 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Play
     @BindView(R.id.tab_layout) TabLayout tabLayout;
     @BindView(R.id.viewpager) ViewPager viewPager;
     @BindView(R.id.collapsing_toolbar) CollapsingToolbarLayout collapsingToolbar;
-    private FCMRetroClient fcmRetroClient;
     private static HashMap<String, Playlist> playlists;
     private static User user;
     private SQLiteHelper sqliteHelper;
@@ -65,7 +54,6 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Play
         Log.d("메인!!", "oncreate");
         initView();
         nodeRetroClient = NodeRetroClient.getInstance(this).createBaseApi();
-        fcmRetroClient = FCMRetroClient.getInstance(this).createBaseApi();
 
         //playlist 정보 가져온다.
 
@@ -115,22 +103,6 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Play
         viewPagerAdpater.setPlaylist(playlists);
         viewPager.setAdapter(viewPagerAdpater);
         tabLayout.setupWithViewPager(viewPager);
-    }
-    public void postMessage(FirebaseMessage firebaseMessage) {
-        fcmRetroClient.postMessage(firebaseMessage, new RetroCallback() {
-            @Override
-            public void onError(Throwable t) {
-                Log.e("", t.toString());
-            }
-
-            @Override
-            public void onSuccess(int code, Object receivedData) {
-                Log.d("외잉", receivedData.toString());
-            }
-            @Override
-            public void onFailure(int code) {
-            }
-        });
     }
 
     public void getRoomList() {
@@ -194,10 +166,8 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Play
 
     @OnClick(R.id.toolbar_searchBtn)
     public void onSearchBtnClick() {
-        postMessage(new FirebaseMessage("/topics/laboum", "temp", "aaa"));
-
-//        Intent intent = new Intent(getApplicationContext(), SearchActivity.class);
-//        startActivity(intent);
+        Intent intent = new Intent(getApplicationContext(), SearchActivity.class);
+        startActivity(intent);
     }
 
     @Override

@@ -1,11 +1,8 @@
 package com.example.doublejk.laboum.view;
 
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.RecyclerView;
@@ -13,47 +10,47 @@ import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
-import com.example.doublejk.laboum.NowPlayingPlaylist;
+import com.example.doublejk.laboum.PlayerControlProvider;
+import com.example.doublejk.laboum.PushEvent;
 import com.example.doublejk.laboum.R;
 import com.example.doublejk.laboum.RecyclerItemClickListener;
-import com.example.doublejk.laboum.adapter.HomeRecyclerAdapter;
 import com.example.doublejk.laboum.adapter.PlayerRecyclerAdapter;
+import com.example.doublejk.laboum.firebase.FirebaseMessage;
 import com.example.doublejk.laboum.model.Music;
 import com.example.doublejk.laboum.model.Playlist;
 import com.example.doublejk.laboum.model.Room;
+import com.example.doublejk.laboum.retrofit.FCMRetroClient;
 import com.example.doublejk.laboum.retrofit.NodeRetroClient;
 import com.example.doublejk.laboum.retrofit.RetroCallback;
-import com.example.doublejk.laboum.retrofit.YoutubeRetroClient;
 import com.example.doublejk.laboum.util.DimensionConverter;
 import com.example.doublejk.laboum.util.GlidePalette;
 import com.google.android.youtube.player.YouTubeBaseActivity;
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubePlayer;
 import com.google.android.youtube.player.YouTubePlayerView;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.google.firebase.messaging.FirebaseMessaging;
+import com.squareup.otto.Subscribe;
 
-import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+
 public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer.OnInitializedListener,
-        YouTubePlayer.OnFullscreenListener, View.OnClickListener, SeekBar.OnSeekBarChangeListener{
+        YouTubePlayer.OnFullscreenListener, SeekBar.OnSeekBarChangeListener{
     YouTubePlayerView youTubePlayerView;
     static final String YOUTUBE_KEY = "AIzaSyBwqHpHu9AwlEfiIVKcJ4rsBWOfgP6WmB0";
     private RecyclerView recyclerView;
@@ -66,12 +63,21 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
     private MyPlayerStateChangeListener myPlayerStateChangeListener;
     private MyPlaylistEventListener myPlaylistEventListener;
     private GlidePalette glidePalette;
-    private FrameLayout playerLayout;
-    private LinearLayout divider;
+    @BindView(R.id.player_layout)  FrameLayout playerLayout;
+    @BindView(R.id.player_divider) LinearLayout divider;
+    @BindView(R.id.player_playBtn) ImageButton playBtn;
+    @BindView(R.id.player_previousBtn) ImageButton previousBtn;
+    @BindView(R.id.player_nextBtn) ImageButton nextBtn;
+    @BindView(R.id.player_fullscreenBtn) ImageButton fullSreenBtn;
+    @BindView(R.id.player_randomBtn) ImageButton randomBtn;
+    @BindView(R.id.player_repeatBtn) ImageButton repeatBtn;
+    @BindView(R.id.player_sharebtn) ImageButton shareBtn;
+    @BindView(R.id.player_currentTimeTv) TextView currentTimeTv;
+    @BindView(R.id.player_durationTv) TextView durationTv;
+    @BindView(R.id.player_playlist_name) TextView playlistName;
+    @BindView(R.id.player_user_name) TextView userName;
+    @BindView(R.id.player_seekbar) SeekBar seekBar;
     private Window window;
-    private ImageButton playBtn, previousBtn, nextBtn, fullSreenBtn, randomBtn, repeatBtn, shareBtn;
-    private TextView currentTimeTv, durationTv, playlistName, userName;
-    private SeekBar seekBar;
     private TimerTask timerTask;
     private Timer timer;
     private Playlist playlist;
@@ -81,6 +87,8 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
     private SharedPreferences sp;
     private SharedPreferences.Editor editor;
     private Room myRoom;
+    private FCMRetroClient fcmRetroClient;
+
 
     private final int ORDINARY_PLAY = 0;
     private final int REPEAT_PLAY = 1;
@@ -90,36 +98,16 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_player);
-
+        PlayerControlProvider.getInstance().register(this);
+        ButterKnife.bind(this);
         Log.d("onCreate", "오오");
         nodeRetroClient = NodeRetroClient.getInstance(this).createBaseApi();
+        fcmRetroClient = FCMRetroClient.getInstance(this).createBaseApi();
 
         videoIds = new ArrayList<>();
         glidePalette = new GlidePalette();
-        playerLayout = (FrameLayout) findViewById(R.id.player_linear);
-        divider = (LinearLayout) findViewById(R.id.player_divider);
 
-        playBtn = (ImageButton) findViewById(R.id.playBtn);
-        nextBtn = (ImageButton) findViewById(R.id.nextBtn);
-        previousBtn = (ImageButton) findViewById(R.id.previousBtn);
-        fullSreenBtn = (ImageButton) findViewById(R.id.fullscreenBtn);
-        currentTimeTv = (TextView) findViewById(R.id.currentTimeTv);
-        durationTv = (TextView) findViewById(R.id.durationTv);
-        seekBar = (SeekBar) findViewById(R.id.seekbar);
-        playlistName = (TextView) findViewById(R.id.player_playlist_name);
-        userName = (TextView) findViewById(R.id.player_user_name);
-        randomBtn = (ImageButton) findViewById(R.id.randomBtn);
-        repeatBtn = (ImageButton) findViewById(R.id.repeatBtn);
-        shareBtn = (ImageButton) findViewById(R.id.player_sharebtn);
-
-        playBtn.setOnClickListener(this);
-        nextBtn.setOnClickListener(this);
-        previousBtn.setOnClickListener(this);
-        fullSreenBtn.setOnClickListener(this);
-        randomBtn.setOnClickListener(this);
-        repeatBtn.setOnClickListener(this);
         seekBar.setOnSeekBarChangeListener(this);
-        shareBtn.setOnClickListener(this);
 
         receiveDataInit();
 
@@ -157,6 +145,36 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         youTubePlayerView.initialize(YOUTUBE_KEY, this);
 
         timer = new Timer();
+    }
+    public void postGroupMsg(FirebaseMessage firebaseMessage) {
+        fcmRetroClient.postGroupMsg(firebaseMessage, new RetroCallback() {
+            @Override
+            public void onError(Throwable t) {
+                Log.e("", t.toString());
+            }
+
+            @Override
+            public void onSuccess(int code, Object receivedData) {
+                Log.d("외잉", receivedData.toString());
+            }
+            @Override
+            public void onFailure(int code) {
+            }
+        });
+    }
+
+    @Subscribe
+    public void playerControl(PushEvent mPushEvent) {
+        if(mPushEvent.getPushData().get("action").equals("next")) {
+            doTouchPlayer = true;
+            if(playerRecyclerAdapter.getPlayingMusicPostion() < videoIds.size() -1) {
+                updateData(playerRecyclerAdapter.getPlayingMusicPostion() +1);
+                youTubePlayer.loadVideos(videoIds, playerRecyclerAdapter.getPlayingMusicPostion(), 0);
+            }else {
+                updateData(0);
+                youTubePlayer .loadVideos(videoIds, 0, 0);
+            }
+        }
     }
 
     @Override
@@ -311,10 +329,11 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         }
     }
 
-    @Override
-    public void onClick(View v) {
+    @OnClick({R.id.player_playBtn, R.id.player_nextBtn, R.id.player_previousBtn,
+            R.id.player_fullscreenBtn, R.id.player_repeatBtn, R.id.player_randomBtn, R.id.player_sharebtn})
+    public void onPlayerClick(View v) {
         switch (v.getId()) {
-            case R.id.playBtn:
+            case R.id.player_playBtn:
                 if(youTubePlayer.isPlaying()) {
                     playBtn.setImageResource(R.drawable.playbtn);
                     youTubePlayer.pause();
@@ -323,7 +342,8 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
                     youTubePlayer.play();
                 }
                 break;
-            case R.id.nextBtn:
+            case R.id.player_nextBtn:
+                postGroupMsg(new FirebaseMessage(playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')), "next"));
                 doTouchPlayer = true;
                 if(playerRecyclerAdapter.getPlayingMusicPostion() < videoIds.size() -1) {
                     updateData(playerRecyclerAdapter.getPlayingMusicPostion() +1);
@@ -333,7 +353,7 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
                     youTubePlayer .loadVideos(videoIds, 0, 0);
                 }
                 break;
-            case R.id.previousBtn:
+            case R.id.player_previousBtn:
                 doTouchPlayer = true;
                 if(playerRecyclerAdapter.getPlayingMusicPostion() > 0) {
                     updateData(playerRecyclerAdapter.getPlayingMusicPostion() -1);
@@ -343,11 +363,11 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
                     youTubePlayer.loadVideos(videoIds, playerRecyclerAdapter.getPlayingMusicPostion(), 0);
                 }
                 break;
-            case R.id.fullscreenBtn:
+            case R.id.player_fullscreenBtn:
                 youTubePlayer.setPlayerStyle(YouTubePlayer.PlayerStyle.DEFAULT);
                 youTubePlayer.setFullscreen(true);
                 break;
-            case R.id.repeatBtn:
+            case R.id.player_repeatBtn:
                 if(stateFlag == ORDINARY_PLAY) {
                     stateFlag = REPEAT_PLAY;
                     repeatBtn.setImageResource(R.drawable.repeatbtn);
@@ -359,7 +379,7 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
                     repeatBtn.setImageResource(R.drawable.unrepeatbtn);
                 }
                 break;
-            case R.id.randomBtn:
+            case R.id.player_randomBtn:
                 if(isClickedRandomBtn) {
                     randomBtn.setImageResource(R.drawable.unrandombtn);
                     isClickedRandomBtn = false;
@@ -385,6 +405,7 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
                                 public void onClick(DialogInterface dialog, int id) {
                                     myRoom = new Room(roomName.getText().toString(), playlist.getUserEmail(), playlist.getUserName(), playlist.getTitle());
                                     myRoom.setPlaylist(playlist);
+                                    FirebaseMessaging.getInstance().subscribeToTopic(playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')));
                                     postCreateRoom(myRoom);
                                     isClickedShareBtn = true;
                                     Toast.makeText(getApplicationContext(), "방을 공유하였습니다.", Toast.LENGTH_SHORT).show();
@@ -435,8 +456,9 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
 
     @Override
     public void onStartTrackingTouch(SeekBar seekBar) {
-        if(timerTask != null)
+        if(timerTask != null) {
             timerTask.cancel();
+        }
     }
 
     @Override
@@ -497,7 +519,7 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
             durationTv.setText(convertTime(youTubePlayer.getDurationMillis()));
             if(isPlayStarted) {
                 timerTask = timerTaskMaker();
-                timer.schedule(timerTask, 0, 300);
+                timer.schedule(timerTask, 500, 300);
                 isPlayStarted = false;
             } else {
                 timerTask = timerTaskMaker();
@@ -607,10 +629,12 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
 
     @Override
     protected void onDestroy() {
+        PlayerControlProvider.getInstance().unregister(this);
         super.onDestroy();
         if(timer != null) {
             timer.cancel();
         }
+        FirebaseMessaging.getInstance().unsubscribeFromTopic(playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')));
     }
     /*public class UriToPalette extends AsyncTask<ArrayList<Music>, Void, ArrayList<PaletteColor>> {
 

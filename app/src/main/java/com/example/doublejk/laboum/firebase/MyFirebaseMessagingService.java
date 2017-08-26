@@ -13,6 +13,8 @@ import android.net.Uri;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
+import com.example.doublejk.laboum.PlayerControlProvider;
+import com.example.doublejk.laboum.PushEvent;
 import com.example.doublejk.laboum.R;
 import com.example.doublejk.laboum.view.MainActivity;
 import com.firebase.jobdispatcher.Constraint;
@@ -38,10 +40,10 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     public void onMessageReceived(RemoteMessage remoteMessage) {
         //앱이 포그라운드인지 백그라운드 인지 여부를 수신
         //알림 메세지는 여기에서만 수신(포그라운드)
+        Log.d("onMessage!", "" + remoteMessage.getData());
         Map<String, String> data = remoteMessage.getData();
-        String temp = data.get("temp");
+        String temp = data.get("key");
         Log.d("파이어", "흠" + temp);
-
 
         // TODO(developer): Handle FCM messages here.
         // Not getting messages here? See why this may be: https://goo.gl/39bRNJ
@@ -50,6 +52,8 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         // Check if message contains a data payload.
         if (remoteMessage.getData().size() > 0) {
             Log.d(TAG, "Message data payload: " + remoteMessage.getData());
+         PlayerControlProvider.getInstance().post(new PushEvent(data));
+
 
             if (/* Check if data needs to be processed by long running job */ true) {
                 // For long-running tasks (10 seconds or more) use Firebase Job Dispatcher.

@@ -3,8 +3,7 @@ package com.example.doublejk.laboum.retrofit;
 import android.content.Context;
 import android.util.Log;
 
-import com.example.doublejk.laboum.model.Playlist;
-import com.example.doublejk.laboum.model.Room;
+import com.example.doublejk.laboum.firebase.FirebaseMessage;
 import com.google.gson.JsonObject;
 
 import retrofit2.Call;
@@ -63,8 +62,8 @@ public class FCMRetroClient {
         return retrofit.create(service);
     }
 
-    public void postMessage(FirebaseMessage firebaseMessage, final RetroCallback callback) {
-        fcmService.postMessage(firebaseMessage).enqueue(new Callback<JsonObject>() {
+    public void postGroupMsg(FirebaseMessage firebaseMessage, final RetroCallback callback) {
+        fcmService.postGroupMsg(firebaseMessage).enqueue(new Callback<JsonObject>() {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
                 if (response.isSuccessful()) {

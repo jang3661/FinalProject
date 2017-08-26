@@ -35,7 +35,6 @@ public class JsonParsing {
                         .getAsJsonObject().get("thumbnails").getAsJsonObject().get("medium")
                         .getAsJsonObject().get("url").toString()));
                 music.setTitle(music.getTitle().replaceAll("\'", ""));
-                Log.d("타이틀", music.getTitle());
                 musics.add(music);
             }
         }
@@ -53,7 +52,6 @@ public class JsonParsing {
                     .getAsJsonObject().get("thumbnails").getAsJsonObject().get("medium")
                     .getAsJsonObject().get("url").toString()));
             music.setTitle(music.getTitle().replaceAll("\'", ""));
-            Log.d("타이틀", music.getTitle());
             musics.add(music);
         }
         return musics;

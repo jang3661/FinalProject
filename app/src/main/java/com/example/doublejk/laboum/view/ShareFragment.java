@@ -22,6 +22,7 @@ import com.example.doublejk.laboum.model.Playlist;
 import com.example.doublejk.laboum.model.Room;
 import com.example.doublejk.laboum.retrofit.NodeRetroClient;
 import com.example.doublejk.laboum.retrofit.RetroCallback;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.ArrayList;
 
@@ -77,6 +78,7 @@ public class ShareFragment extends Fragment {
             @Override
             public void onItemClick(View view, int position) {
                 postEnterRoom(rooms.get(position));
+                FirebaseMessaging.getInstance().subscribeToTopic(rooms.get(position).getUserEmail().substring(0, rooms.get(position).getUserEmail().indexOf('@')));
             }
 
             @Override

@@ -64,8 +64,8 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-//        sqliteHelper = new SQLiteHelper(this);
-//        //디비삭제용
+        sqliteHelper = new SQLiteHelper(this);
+        //디비삭제용
 //        SQLiteDatabase db = sqliteHelper.getWritableDatabase();
 //        sqliteHelper.onDrop(db);
 
@@ -128,7 +128,6 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                 sqliteHelper = new SQLiteHelper(this);
                 //유저 등록
                 User user = new User(account.getEmail(), account.getDisplayName(), account.getPhotoUrl().toString());
-                FirebaseMessaging.getInstance().subscribeToTopic("laboum");
                 if(sqliteHelper.isPlaylistSelect(account.getEmail())) {
                     //플레이리스트, 음악 디비정보 가져온다
                     Log.d("Login", "기존");
