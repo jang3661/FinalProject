@@ -3,13 +3,17 @@ package com.example.doublejk.laboum.retrofit;
 import android.content.Context;
 import android.util.Log;
 
+import com.example.doublejk.laboum.model.Playlist;
 import com.example.doublejk.laboum.model.Room;
 import com.example.doublejk.laboum.model.User;
 import com.google.gson.JsonObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+import okhttp3.OkHttpClient;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -40,10 +44,14 @@ public class NodeRetroClient {
     }
 
     private NodeRetroClient(Context context) {
+//        OkHttpClient client = new OkHttpClient.Builder()
+//                .connectTimeout(100, TimeUnit.SECONDS)
+//                .readTimeout(100,TimeUnit.SECONDS).build();
         retrofit = new Retrofit.Builder()
                 .addConverterFactory(ScalarsConverterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create())
                 .baseUrl(baseUrl)
+                //.client(client)
                 .build();
     }
 
@@ -61,6 +69,50 @@ public class NodeRetroClient {
             throw new RuntimeException("Api service is null!");
         }
         return retrofit.create(service);
+    }
+
+    public void getRoomList(final RetroCallback callback) {
+        nodeNetworkService.getRoomList().enqueue(new Callback<ArrayList<Room>>() {
+            @Override
+            public void onResponse(Call<ArrayList<Room>> call, Response<ArrayList<Room>> response) {
+                if (response.isSuccessful()) {
+                    Log.d("getRoomList", "" + response.body().toString());
+                    callback.onSuccess(response.code(), response.body());
+
+                } else {
+                    Log.d("getRoomList", "Fail" + response.code());
+                    callback.onFailure(response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ArrayList<Room>> call, Throwable t) {
+                Log.d("getRoomList", "" + t.toString());
+                callback.onError(t);
+            }
+        });
+    }
+
+    public void postEnterRoom(Room room, final RetroCallback callback) {
+        nodeNetworkService.postEnterRoom(room).enqueue(new Callback<Playlist>() {
+            @Override
+            public void onResponse(Call<Playlist> call, Response<Playlist> response) {
+                if (response.isSuccessful()) {
+                    Log.d("postEnterRoom", "" + response.body().toString());
+                    callback.onSuccess(response.code(), response.body());
+
+                } else {
+                    Log.d("postEnterRoom", "Fail" + response.code());
+                    callback.onFailure(response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Playlist> call, Throwable t) {
+                Log.d("deleteRoom", "" + t.toString());
+                callback.onError(t);
+            }
+        });
     }
     public void postDeleteRoom(Room room, final RetroCallback callback) {
         nodeNetworkService.postDeleteRoom(room).enqueue(new Callback<String>() {

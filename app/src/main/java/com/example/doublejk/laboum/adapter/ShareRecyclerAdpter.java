@@ -2,12 +2,15 @@ package com.example.doublejk.laboum.adapter;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.bumptech.glide.Glide;
 import com.example.doublejk.laboum.R;
 import com.example.doublejk.laboum.model.Playlist;
+import com.example.doublejk.laboum.model.Room;
 import com.example.doublejk.laboum.viewholder.ShareViewHolder;
 
 import java.util.ArrayList;
@@ -18,11 +21,11 @@ import java.util.ArrayList;
 
 public class ShareRecyclerAdpter extends RecyclerView.Adapter<ShareViewHolder> {
     private Context context;
-    private ArrayList<Playlist> playlists;
+    private ArrayList<Room> rooms;
 
-    public ShareRecyclerAdpter(Context context, ArrayList<Playlist> playlists) {
+    public ShareRecyclerAdpter(Context context, ArrayList<Room> rooms) {
         this.context = context;
-        this.playlists = playlists;
+        this.rooms = rooms;
     }
 
     @Override
@@ -34,11 +37,34 @@ public class ShareRecyclerAdpter extends RecyclerView.Adapter<ShareViewHolder> {
 
     @Override
     public void onBindViewHolder(ShareViewHolder holder, int position) {
-
+        Glide.with(context).load(R.drawable.music_placeholer).fitCenter().into(holder.getRoomImg());
+//        if(rooms.get(position).getPlaylist().getMusics() == null) {
+//            Glide.with(context).load(R.drawable.temp).fitCenter().into(holder.getRoomImg());
+//        }else {
+//            Glide.with(context).load(rooms.get(position).getPlaylist().getMusics()
+//                    .get(0).getImgUrl()).fitCenter().into(holder.getRoomImg());
+//        }
+        holder.getRoomName().setText(rooms.get(position).getTitle());
+        holder.getUserName().setText(rooms.get(position).getUserName());
+        holder.getUserCount().setText("" + rooms.get(position).getListenerCount() + "명");
     }
 
     @Override
     public int getItemCount() {
-        return 0;
+        return rooms.size();
     }
+
+    public ArrayList<Room> getRooms() {
+        return rooms;
+    }
+
+    public void setRooms(ArrayList<Room> rooms) {
+        this.rooms = rooms;
+    }
+
+//    public void updateRoomList(ArrayList<Room> rooms) {
+//        this.rooms = rooms;
+//        notifyDataSetChanged();
+//        Log.d("왜안와", "" + rooms.size());
+//    }
 }

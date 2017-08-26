@@ -39,9 +39,9 @@ public interface YoutubeApiService {
     Call<JsonObject> getActivities(@Query("maxResults") int maxResults);
 
 
+
     @GET("login")
     Call<String> getTest();
-
 
     @GET("/posts/{userId}")
     Call<ResponseGet> getFirst(@Path("userId") String id);

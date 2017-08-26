@@ -72,22 +72,22 @@ public class HomeRecyclerAdapter extends RecyclerView.Adapter<PopularVideoViewHo
                             Palette.Swatch vibrantSwatch = palette.getVibrantSwatch();
                             if (vibrantSwatch != null) {
                                 musics.get(position).getPaletteColor().setVibrantRgb(vibrantSwatch.getRgb());
-                                Log.d("vibrant", "과연" +position);
+                                //Log.d("vibrant", "과연" +position);
                             }
                             Palette.Swatch darkVibrantSwatch = palette.getDarkVibrantSwatch();
                             if (darkVibrantSwatch != null) {
                                 musics.get(position).getPaletteColor().setDarkVibrantRgb(darkVibrantSwatch.getRgb());
-                                Log.d("darkVibrant", "과연"+position);
+                                //Log.d("darkVibrant", "과연"+position);
                             }
                             Palette.Swatch mutedSwatch = palette.getMutedSwatch();
                             if (mutedSwatch != null) {
                                 musics.get(position).getPaletteColor().setMutedRgb(mutedSwatch.getRgb());
-                                Log.d("muted", "과연"+position);
+                                //Log.d("muted", "과연"+position);
                             }
                             Palette.Swatch darkMutedSwatch = palette.getDarkMutedSwatch();
                             if (darkMutedSwatch != null) {
                                 musics.get(position).getPaletteColor().setDarkMutedRgb(darkMutedSwatch.getRgb());
-                                Log.d("darkMuted", "과연"+position);
+                                //Log.d("darkMuted", "과연"+position);
                             }
                         }
                     }

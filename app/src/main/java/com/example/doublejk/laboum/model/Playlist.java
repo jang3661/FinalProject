@@ -4,6 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.example.doublejk.laboum.R;
+import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -14,9 +15,13 @@ import java.util.LinkedHashMap;
  */
 
 public class Playlist implements Parcelable{
+    @SerializedName("title")
     private String title;
+    @SerializedName("useremail")
     private String userEmail;
+    @SerializedName("username")
     private String userName;
+    @SerializedName("musics")
     private ArrayList<Music> musics;
 
     public Playlist(String title, String userEmail, String userName) {

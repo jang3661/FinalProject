@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.animation.AccelerateInterpolator;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.example.doublejk.laboum.NowPlayingPlaylist;
@@ -22,7 +23,13 @@ import com.example.doublejk.laboum.SQLiteHelper;
 import com.example.doublejk.laboum.adapter.ViewPagerAdpater;
 import com.example.doublejk.laboum.model.Music;
 import com.example.doublejk.laboum.model.Playlist;
+import com.example.doublejk.laboum.model.Room;
 import com.example.doublejk.laboum.model.User;
+import com.example.doublejk.laboum.retrofit.FCMRetroClient;
+import com.example.doublejk.laboum.retrofit.FirebaseMessage;
+import com.example.doublejk.laboum.retrofit.NodeRetroClient;
+import com.example.doublejk.laboum.retrofit.RetroCallback;
+import com.example.doublejk.laboum.retrofit.YoutubeRetroClient;
 import com.example.doublejk.laboum.util.ViewAnimation;
 import com.google.firebase.crash.FirebaseCrash;
 
@@ -37,15 +44,18 @@ import butterknife.OnClick;
 public class MainActivity extends AppCompatActivity implements HomeFragment.PlaylistsChangedListener,
         NewPlaylistDialogFragment.onAddPlaylistListener, ViewPager.OnPageChangeListener{
     @BindView(R.id.toolbar) Toolbar toolbar;
-    @BindView(R.id.toolbar_searchBtn) ImageButton imageButton;
+    @BindView(R.id.toolbar_searchBtn) ImageButton searchBtn;
     @BindView(R.id.tab_layout) TabLayout tabLayout;
     @BindView(R.id.viewpager) ViewPager viewPager;
     @BindView(R.id.collapsing_toolbar) CollapsingToolbarLayout collapsingToolbar;
+    private FCMRetroClient fcmRetroClient;
     private static HashMap<String, Playlist> playlists;
     private static User user;
     private SQLiteHelper sqliteHelper;
     private ViewPagerAdpater viewPagerAdpater;
     private ArrayList<Music> musics;
+    private NodeRetroClient nodeRetroClient;
+    private ArrayList<Room> rooms;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +64,8 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Play
         ButterKnife.bind(this);
         Log.d("메인!!", "oncreate");
         initView();
+        nodeRetroClient = NodeRetroClient.getInstance(this).createBaseApi();
+        fcmRetroClient = FCMRetroClient.getInstance(this).createBaseApi();
 
         //playlist 정보 가져온다.
 
@@ -88,9 +100,7 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Play
 
         setSupportActionBar(toolbar);
         getSupportActionBar().setTitle("Laboum");
-//        getSupportActionBar().setIcon();
-//        getSupportActionBar().setDisplayHomeAsUpEnabled(true); //화살표
-//        getSupportActionBar().setHomeAsUpIndicator(R.drawable.icon); // 화살표 이미지 변경
+        getSupportActionBar().setIcon(R.drawable.main_icon);
 
         collapsingToolbar.setTitleEnabled(false);
         //collapsingToolbar.setContentScrimColor(Color.GREEN); //툴바가 사라지는 동안 색상 지정
@@ -105,6 +115,47 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Play
         viewPagerAdpater.setPlaylist(playlists);
         viewPager.setAdapter(viewPagerAdpater);
         tabLayout.setupWithViewPager(viewPager);
+    }
+    public void postMessage(FirebaseMessage firebaseMessage) {
+        fcmRetroClient.postMessage(firebaseMessage, new RetroCallback() {
+            @Override
+            public void onError(Throwable t) {
+                Log.e("", t.toString());
+            }
+
+            @Override
+            public void onSuccess(int code, Object receivedData) {
+                Log.d("외잉", receivedData.toString());
+            }
+            @Override
+            public void onFailure(int code) {
+            }
+        });
+    }
+
+    public void getRoomList() {
+        Toast.makeText(this, "RoomLIst", Toast.LENGTH_SHORT).show();
+
+        nodeRetroClient.getRoomList(new RetroCallback() {
+            @Override
+            public void onError(Throwable t) {
+                Log.e("onError", t.toString());
+            }
+
+            @Override
+            public void onSuccess(int code, Object receivedData) {
+                Log.d("onSuccess", "" + code + " " + receivedData.toString());
+                rooms = (ArrayList<Room>) receivedData;
+                if(rooms != null) {
+                    ShareFragment shareFragment = (ShareFragment) viewPagerAdpater.instantiateItem(viewPager, 2);
+                    shareFragment.updateRoomList(rooms);
+                }
+            }
+            @Override
+            public void onFailure(int code) {
+                Log.d("onFailure", "" + code);
+            }
+        });
     }
 
     @Override
@@ -143,9 +194,10 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Play
 
     @OnClick(R.id.toolbar_searchBtn)
     public void onSearchBtnClick() {
-        Log.d("이미지버튼", "클릭!");
-        Intent intent = new Intent(getApplicationContext(), SearchActivity.class);
-        startActivity(intent);
+        postMessage(new FirebaseMessage("/topics/laboum", "temp", "aaa"));
+
+//        Intent intent = new Intent(getApplicationContext(), SearchActivity.class);
+//        startActivity(intent);
     }
 
     @Override
@@ -184,6 +236,8 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Play
             Log.d("변화", "ㅎ자");
             MyFragment myFragment = (MyFragment) viewPagerAdpater.instantiateItem(viewPager, 1);
             myFragment.getMyTabRecyclerAdapter().notifyDataSetChanged();
+        }else if(position == 2) {
+            getRoomList();
         }
     }
 

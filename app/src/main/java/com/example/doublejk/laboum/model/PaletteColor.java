@@ -3,14 +3,20 @@ package com.example.doublejk.laboum.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * Created by doublejk on 2017-08-14.
  */
 
 public class PaletteColor implements Parcelable{
+    @SerializedName("vibrant")
     private int vibrantRgb;
+    @SerializedName("darkvibrant")
     private int darkVibrantRgb;
+    @SerializedName("mute")
     private int mutedRgb;
+    @SerializedName("darkmute")
     private int darkMutedRgb;
 
     public PaletteColor() {

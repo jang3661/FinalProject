@@ -11,6 +11,7 @@
     <string name="new_playlist_title">새 재생목록 만들기</string>
     <string name="cancel">취소</string>
     <string name="create">만들기</string>
+    <string name="server_key">AAAAQmzagBA:APA91bHlmUNtzFL0WEP3ASMQG9F_nkrDbIwFhyG1XMNxHGiwmT-dxTkB1aCoCWyQk_JbG4xVEgSqNZ4NI-Qu7h5-T3_-9BukGCIVyclja9IT-P_y1o_mamfX2_yJJXfqgz45hSjNi6wN</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>

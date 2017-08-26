@@ -1,0 +1,26 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.example.doublejk.laboum.view.ShareDialogFragment">
+
+    <TextView
+        android:id="@+id/share_dialog_title"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="재생목록을 공유하시겠습니까?" />
+
+    <TextView
+        android:id="@+id/share_dialog_roomname"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="방이름" />
+
+    <EditText
+        android:id="@+id/share_dialog_edit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxLines="1" />
+
+</LinearLayout>

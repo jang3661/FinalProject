@@ -3,15 +3,20 @@ package com.example.doublejk.laboum.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * Created by doublejk on 2017-08-08.
  */
 
 public class Music implements Parcelable{
+    @SerializedName("videoid")
     private String videoId;
+    @SerializedName("title")
     private String title;
+    @SerializedName("imgurl")
     private String imgUrl;
-    private boolean isSelected;
+    @SerializedName("palette")
     private PaletteColor paletteColor;
 
     public Music() {
@@ -29,7 +34,6 @@ public class Music implements Parcelable{
         videoId = in.readString();
         title = in.readString();
         imgUrl = in.readString();
-        isSelected = in.readByte() != 0;
         paletteColor = in.readParcelable(PaletteColor.class.getClassLoader());
     }
 
@@ -78,14 +82,6 @@ public class Music implements Parcelable{
         this.paletteColor = new PaletteColor(paletteColor);
     }
 
-    public boolean isSelected() {
-        return isSelected;
-    }
-
-    public void setSelected(boolean selected) {
-        isSelected = selected;
-    }
-
     @Override
     public int describeContents() {
         return 0;
@@ -96,7 +92,6 @@ public class Music implements Parcelable{
         dest.writeString(videoId);
         dest.writeString(title);
         dest.writeString(imgUrl);
-        dest.writeByte((byte) (isSelected ? 1 : 0));
         dest.writeParcelable(paletteColor, flags);
     }
 }

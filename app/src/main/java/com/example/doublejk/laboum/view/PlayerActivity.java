@@ -1,8 +1,12 @@
 package com.example.doublejk.laboum.view;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -10,6 +14,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -48,7 +53,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer.OnInitializedListener,
-        YouTubePlayer.OnFullscreenListener, View.OnClickListener, SeekBar.OnSeekBarChangeListener, CompoundButton.OnCheckedChangeListener{
+        YouTubePlayer.OnFullscreenListener, View.OnClickListener, SeekBar.OnSeekBarChangeListener{
     YouTubePlayerView youTubePlayerView;
     static final String YOUTUBE_KEY = "AIzaSyBwqHpHu9AwlEfiIVKcJ4rsBWOfgP6WmB0";
     private RecyclerView recyclerView;
@@ -64,14 +69,13 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
     private FrameLayout playerLayout;
     private LinearLayout divider;
     private Window window;
-    private ImageButton playBtn, previousBtn, nextBtn, fullSreenBtn, randomBtn, repeatBtn;
+    private ImageButton playBtn, previousBtn, nextBtn, fullSreenBtn, randomBtn, repeatBtn, shareBtn;
     private TextView currentTimeTv, durationTv, playlistName, userName;
     private SeekBar seekBar;
     private TimerTask timerTask;
     private Timer timer;
-    private Switch shareSwith;
     private Playlist playlist;
-    private boolean isPlayStarted, doTouchPlayer, isClickedRandomBtn;
+    private boolean isPlayStarted, doTouchPlayer, isClickedRandomBtn, isClickedShareBtn;
     private int stateFlag;
     private NodeRetroClient nodeRetroClient;
     private SharedPreferences sp;
@@ -106,7 +110,7 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         userName = (TextView) findViewById(R.id.player_user_name);
         randomBtn = (ImageButton) findViewById(R.id.randomBtn);
         repeatBtn = (ImageButton) findViewById(R.id.repeatBtn);
-        shareSwith = (Switch) findViewById(R.id.share_switch);
+        shareBtn = (ImageButton) findViewById(R.id.player_sharebtn);
 
         playBtn.setOnClickListener(this);
         nextBtn.setOnClickListener(this);
@@ -115,7 +119,7 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         randomBtn.setOnClickListener(this);
         repeatBtn.setOnClickListener(this);
         seekBar.setOnSeekBarChangeListener(this);
-        shareSwith.setOnCheckedChangeListener(this);
+        shareBtn.setOnClickListener(this);
 
         receiveDataInit();
 
@@ -193,6 +197,7 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
                 PlayerActivity.this.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        //back키 눌렀을때 이벤트처리
                         currentTimeTv.setText(convertTime(youTubePlayer.getCurrentTimeMillis()));
                         seekBar.setProgress(youTubePlayer.getCurrentTimeMillis());
                     }
@@ -200,6 +205,14 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
             }
         };
         return timerTask;
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        if(timerTask != null) {
+            timerTask.cancel();
+        }
     }
 
     public String convertTime(int currentTime) {
@@ -230,7 +243,7 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
 
-        window.setStatusBarColor(musics.get(0).getPaletteColor().getDarkVibrantRgb());
+        //window.setStatusBarColor(musics.get(0).getPaletteColor().getDarkVibrantRgb());
         playerLayout.setBackgroundColor(musics.get(0).getPaletteColor().getVibrantRgb());
         if(musics.size() < 5) {
             divider.setBackgroundColor(musics.get(0).getPaletteColor().getDarkVibrantRgb());
@@ -355,6 +368,44 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
                     isClickedRandomBtn = true;
                 }
                 break;
+            case R.id.player_sharebtn:
+                if(!isClickedShareBtn) {
+                    final EditText roomName = new EditText(this);
+                    LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT);
+                    roomName.setLayoutParams(lp);
+
+                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setTitle("재생목록을 공유하시겠습니까?")
+                            // Add action buttons
+                            .setView(roomName)
+                            .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int id) {
+                                    myRoom = new Room(roomName.getText().toString(), playlist.getUserEmail(), playlist.getUserName(), playlist.getTitle());
+                                    myRoom.setPlaylist(playlist);
+                                    postCreateRoom(myRoom);
+                                    isClickedShareBtn = true;
+                                    Toast.makeText(getApplicationContext(), "방을 공유하였습니다.", Toast.LENGTH_SHORT).show();
+
+                                }
+                            })
+                            .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    //다시 색 바꿔주고
+                                    dialog.cancel();
+                                }
+                            });
+                    AlertDialog alertDialog = builder.create();
+                    alertDialog.show();
+                    //어차피 현재상태에서 방목록 못본다.
+                }else {
+                    postDeleteRoom(myRoom);
+                    isClickedShareBtn = false;
+                    Toast.makeText(getApplicationContext(), "공유를 해제하였습니다.", Toast.LENGTH_SHORT).show();
+                }
+                break;
         }
     }
 
@@ -364,7 +415,7 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         playerRecyclerAdapter.setPlayingMusicPostion(position);
         playerRecyclerAdapter.notifyDataSetChanged();
 
-        window.setStatusBarColor(musics.get(position).getPaletteColor().getDarkVibrantRgb());
+        //window.setStatusBarColor(musics.get(position).getPaletteColor().getDarkVibrantRgb());
         playerLayout.setBackgroundColor(musics.get(position).getPaletteColor().getVibrantRgb());
         //divider 색변경
         if(musics.size() < 5) {
@@ -397,22 +448,7 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         timer.schedule(timerTask, 500, 300);*/
 }
 
-    //switch
-    @Override
-    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-        myRoom = new Room("뀨뀨", playlist.getUserEmail(), playlist.getUserName(), playlist.getTitle());
-        if(isChecked) {
-            //방이름 보내야한다. 서버로 전송!
-            //어차피 현재상태에서 방목록 못본다.
-            postCreateRoom(myRoom);
-            //playlist랑 music정보도 보내야지
-            Toast.makeText(this, "방을 공유하였습니다.", Toast.LENGTH_SHORT).show();
-        }else {
-            postDeleteRoom(myRoom);
-        }
-    }
     public void postCreateRoom(Room room) {
-        Toast.makeText(this, "검색 결과!", Toast.LENGTH_SHORT).show();
         nodeRetroClient.postCreateRoom(room, new RetroCallback() {
             @Override
             public void onError(Throwable t) {

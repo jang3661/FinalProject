@@ -1,9 +1,11 @@
 package com.example.doublejk.laboum.retrofit;
 
+import com.example.doublejk.laboum.model.Playlist;
 import com.example.doublejk.laboum.model.Room;
 import com.example.doublejk.laboum.model.User;
 import com.google.gson.JsonObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -26,8 +28,8 @@ import retrofit2.http.Query;
  */
 
 public interface NodeNetworkService {
-    //final String  Base_URL = "http://192.168.10.102:3000/";
-    final String  Base_URL = "http://1b4efa77.ngrok.io/";
+    final String  Base_URL = "http://192.168.10.102:3000/";
+    //final String  Base_URL = "http://1b4efa77.ngrok.io/";
 
     @POST("login")
     Call<String> postLogin(@Body User user);
@@ -40,6 +42,18 @@ public interface NodeNetworkService {
 
     @POST("room/delete")
     Call<String> postDeleteRoom(@Body Room room);
+
+    @GET("room/list")
+    Call<ArrayList<Room>> getRoomList();
+
+    @POST("room/enter")
+    Call<Playlist> postEnterRoom(@Body Room room);
+
+
+
+
+
+
 
     @GET("videos?part=snippet&chart=mostPopular&regionCode=KR&videoCategoryId=10")
     Call<JsonObject> getPopularSearch(@Query("key") String key, @Query("maxResults") int maxResults);
