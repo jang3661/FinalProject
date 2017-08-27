@@ -42,7 +42,7 @@ import com.google.firebase.messaging.FirebaseMessaging;
 
 
 public class LoginActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener,
-        View.OnClickListener{
+        View.OnClickListener {
 
     private static final String TAG = "GoogleActivity";
     private static final String YOUTUBE_SCOPE = "https://www.googleapis.com/auth/youtube";
@@ -51,10 +51,6 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
     private FirebaseAuth mAuth;
     private GoogleApiClient mGoogleApiClient;
     private NodeRetroClient nodeRetroClient;
-    private TextView mStatusTextView;
-    private TextView mDetailTextView;
-    private TextView info;
-    private String token;
     private SignInButton signInButton;
     private SQLiteHelper sqliteHelper;
     private GoogleSignInResult result;
@@ -69,13 +65,10 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
 //        SQLiteDatabase db = sqliteHelper.getWritableDatabase();
 //        sqliteHelper.onDrop(db);
 
-        mStatusTextView = (TextView) findViewById(R.id.status);
-        mDetailTextView = (TextView) findViewById(R.id.detail);
-        info = (TextView) findViewById(R.id.info);
 
         signInButton = (SignInButton) findViewById(R.id.sign_in_button);
-        findViewById(R.id.sign_out_button).setOnClickListener(this);
-        findViewById(R.id.disconnect_button).setOnClickListener(this);
+//        findViewById(R.id.sign_out_button).setOnClickListener(this);
+//        findViewById(R.id.disconnect_button).setOnClickListener(this);
 
         signInButton.setOnClickListener(this);
 
@@ -118,17 +111,11 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                 // Google Sign In was successful, authenticate with Firebase
                 GoogleSignInAccount account = result.getSignInAccount();
                 firebaseAuthWithGoogle(account);
-                String personName = account.getDisplayName();
-                String personGivenName = account.getGivenName();
-                String personFamilyName = account.getFamilyName();
-                String personEmail = account.getEmail();
-                String personId = account.getId();
-                Uri personPhoto = account.getPhotoUrl();
 
                 sqliteHelper = new SQLiteHelper(this);
                 //유저 등록
                 User user = new User(account.getEmail(), account.getDisplayName(), account.getPhotoUrl().toString());
-                if(sqliteHelper.isPlaylistSelect(account.getEmail())) {
+                if (sqliteHelper.isPlaylistSelect(account.getEmail())) {
                     //플레이리스트, 음악 디비정보 가져온다
                     Log.d("Login", "기존");
                     NowPlayingPlaylist.title = sqliteHelper.nowPlaylitSelect(account.getEmail());
@@ -160,10 +147,6 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
 //                        Log.e("Fail", "" + code);
 //                    }
 //                });
-
-                info.setText(personName + "\n" + personGivenName + "\n" +personFamilyName + " \n"
-                         + account.getServerAuthCode() + "\n" + personId + account.getId() + " " + account.getEmail());
-                Log.d("dd", "" + account.getServerAuthCode());
 
                 Intent intent = new Intent(this, MainActivity.class);
                 intent.putExtra("user", user);
@@ -248,17 +231,10 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
     private void updateUI(FirebaseUser user) {
         // hideProgressDialog();
         if (user != null) {
-            mStatusTextView.setText(getString(R.string.google_status_fmt, user.getEmail()));
-            mDetailTextView.setText(getString(R.string.firebase_status_fmt, user.getUid()));
+//            mStatusTextView.setText(getString(R.string.google_status_fmt, user.getEmail()));
+//            mDetailTextView.setText(getString(R.string.firebase_status_fmt, user.getUid()));
 
-//            findViewById(R.id.sign_in_button).setVisibility(View.GONE);
-//            findViewById(R.id.sign_out_and_disconnect).setVisibility(View.VISIBLE);
         } else {
-            mStatusTextView.setText(R.string.signed_out);
-            mDetailTextView.setText(null);
-
-//            findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
-//            findViewById(R.id.sign_out_and_disconnect).setVisibility(View.GONE);
         }
     }
 
@@ -267,12 +243,15 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         int i = v.getId();
         if (i == R.id.sign_in_button) {
             signIn();
-        } else if (i == R.id.sign_out_button) {
-
-            signOut();
-        } else if (i == R.id.disconnect_button) {
-            revokeAccess();
+//        } else if (i == R.id.sign_out_button) {
+//
+//            signOut();
+//        } else if (i == R.id.disconnect_button) {
+//            revokeAccess();
+//        }
         }
+
+
     }
 
     @Override

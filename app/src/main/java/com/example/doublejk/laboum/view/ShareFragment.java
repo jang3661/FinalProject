@@ -14,15 +14,21 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.example.doublejk.laboum.PlayerControlProvider;
+import com.example.doublejk.laboum.PushEvent;
 import com.example.doublejk.laboum.R;
 import com.example.doublejk.laboum.RecyclerItemClickListener;
 import com.example.doublejk.laboum.adapter.MyTabRecyclerAdapter;
 import com.example.doublejk.laboum.adapter.ShareRecyclerAdpter;
+import com.example.doublejk.laboum.firebase.FirebaseMessage;
 import com.example.doublejk.laboum.model.Playlist;
 import com.example.doublejk.laboum.model.Room;
+import com.example.doublejk.laboum.retrofit.FCMRetroClient;
 import com.example.doublejk.laboum.retrofit.NodeRetroClient;
 import com.example.doublejk.laboum.retrofit.RetroCallback;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.squareup.otto.Subscribe;
 
 import java.util.ArrayList;
 
@@ -33,6 +39,8 @@ public class ShareFragment extends Fragment {
     private ArrayList<Playlist> playlists;
     private ArrayList<Room> rooms;
     private NodeRetroClient nodeRetroClient;
+    private FCMRetroClient fcmRetroClient;
+    private Playlist playlist;
     public ShareFragment() {
         // Required empty public constructor
     }
@@ -46,14 +54,17 @@ public class ShareFragment extends Fragment {
         return fragment;
     }
 
-//    @Override
-//    public void onCreate(Bundle savedInstanceState) {
-//        super.onCreate(savedInstanceState);
-//        if (getArguments() != null) {
-//            mParam1 = getArguments().getString(ARG_PARAM1);
-//            mParam2 = getArguments().getString(ARG_PARAM2);
-//        }
-//    }
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+         PlayerControlProvider.getInstance().register(this);
+    }
+
+    @Override
+    public void onDestroy() {
+        PlayerControlProvider.getInstance().unregister(this);
+        super.onDestroy();
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -62,6 +73,7 @@ public class ShareFragment extends Fragment {
         Log.d("프래그먼트", "onCre");
 
         nodeRetroClient = NodeRetroClient.getInstance(getActivity()).createBaseApi();
+        fcmRetroClient = FCMRetroClient.getInstance(getActivity()).createBaseApi();
         playlists = new ArrayList<>();
         rooms = new ArrayList<>();
         recyclerView = (RecyclerView) view.findViewById(R.id.share_recyclerview);
@@ -79,6 +91,7 @@ public class ShareFragment extends Fragment {
             public void onItemClick(View view, int position) {
                 postEnterRoom(rooms.get(position));
                 FirebaseMessaging.getInstance().subscribeToTopic(rooms.get(position).getUserEmail().substring(0, rooms.get(position).getUserEmail().indexOf('@')));
+                //playlist의 현재재생상태를 보내줘야함
             }
 
             @Override
@@ -87,6 +100,34 @@ public class ShareFragment extends Fragment {
         }));
 
         return view;
+    }
+
+    @Subscribe
+    public void playPlaylist(PushEvent mPushEvent) {
+        Log.d("버스", "" + mPushEvent.getPushData().get("action") + " " + mPushEvent.getPushData().get("playingMusicIndex") + " " + mPushEvent.getPushData().get("currentMillis"));
+        if(mPushEvent.getPushData().get("action").equals("reply")) {
+            Intent intent = new Intent(getActivity(), PlayerActivity.class);
+            intent.putExtra("playlist", playlist);
+            intent.putExtra("playingPos", Integer.valueOf(mPushEvent.getPushData().get("playingMusicIndex")));
+            intent.putExtra("currentMillis", Integer.valueOf(mPushEvent.getPushData().get("currentMillis")));
+            startActivity(intent);
+        }
+    }
+    public void postMusicInfo(FirebaseMessage firebaseMessage) {
+        fcmRetroClient.postGroupMsg(firebaseMessage, new RetroCallback() {
+            @Override
+            public void onError(Throwable t) {
+                Log.e("", t.toString());
+            }
+
+            @Override
+            public void onSuccess(int code, Object receivedData) {
+                Log.d("외잉", receivedData.toString());
+            }
+            @Override
+            public void onFailure(int code) {
+            }
+        });
     }
 
     public void postEnterRoom(Room room) {
@@ -100,12 +141,8 @@ public class ShareFragment extends Fragment {
             @Override
             public void onSuccess(int code, Object receivedData) {
                 Log.d("onSuccess", "" + code + " " + receivedData.toString());
-                Playlist playlist = (Playlist)receivedData;
-                Log.d("우히히", ""+playlist.getMusics().get(0).getPaletteColor().getVibrantRgb());
-                //차후 playlist의 현재 위치도 잡아야함
-                Intent intent = new Intent(getActivity(), PlayerActivity.class);
-                intent.putExtra("playlist", playlist);
-                startActivity(intent);
+                playlist = (Playlist)receivedData;
+                postMusicInfo(new FirebaseMessage(playlist.getToken(), "playlistInfo",FirebaseInstanceId.getInstance().getToken()));
             }
 
             @Override

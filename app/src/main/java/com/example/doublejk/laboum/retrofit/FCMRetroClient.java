@@ -6,6 +6,9 @@ import android.util.Log;
 import com.example.doublejk.laboum.firebase.FirebaseMessage;
 import com.google.gson.JsonObject;
 
+import java.util.concurrent.TimeUnit;
+
+import okhttp3.OkHttpClient;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -35,14 +38,14 @@ public class FCMRetroClient {
     }
 
     private FCMRetroClient(Context context) {
-//        OkHttpClient client = new OkHttpClient.Builder()
-//                .connectTimeout(100, TimeUnit.SECONDS)
-//                .readTimeout(100,TimeUnit.SECONDS).build();
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(100, TimeUnit.SECONDS)
+                .readTimeout(100,TimeUnit.SECONDS).build();
         retrofit = new Retrofit.Builder()
                 .addConverterFactory(ScalarsConverterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create())
                 .baseUrl(baseUrl)
-                //.client(client)
+                .client(client)
                 .build();
     }
 
@@ -67,18 +70,18 @@ public class FCMRetroClient {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
                 if (response.isSuccessful()) {
-                    Log.d("getRoomList", "" + response.body().toString());
+                    Log.d("FCM", "Success " + response.body().toString());
                     callback.onSuccess(response.code(), response.body());
 
                 } else {
-                    Log.d("getRoomList", "Fail" + response.code());
+                    Log.d("FCM", "Fail" + response.code());
                     callback.onFailure(response.code());
                 }
             }
 
             @Override
             public void onFailure(Call<JsonObject> call, Throwable t) {
-                Log.d("getRoomList", "" + t.toString());
+                Log.d("FCM", "" + t.toString());
                 callback.onError(t);
             }
         });

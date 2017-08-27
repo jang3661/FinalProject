@@ -41,7 +41,7 @@ public class HomeRecyclerAdapter extends RecyclerView.Adapter<PopularVideoViewHo
     @Override
     public PopularVideoViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         Log.d("onCreateView", "얼마나오냐");
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.recyclerview_popular_music, parent, false);
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.recyclerview_home, parent, false);
         PopularVideoViewHolder holder = new PopularVideoViewHolder(v, musics, selectedMusicProvider, selectedItems);
         return holder;
     }

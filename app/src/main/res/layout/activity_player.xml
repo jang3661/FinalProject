@@ -18,10 +18,11 @@
             android:layout_height="wrap_content" />
 
         <LinearLayout
+            android:id="@+id/player_info"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="16dp"
-            android:layout_marginRight="16dp"
+            android:paddingRight="16dp"
+            android:paddingLeft="16dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
@@ -37,7 +38,7 @@
                     android:layout_height="0dp"
                     android:layout_weight="1"
                     android:text="플레이리스트 이름"
-                    android:textColor="#FFF"/>
+                    android:textColor="#FFF" />
 
                 <TextView
                     android:id="@+id/player_user_name"
@@ -45,27 +46,35 @@
                     android:layout_height="0dp"
                     android:layout_weight="1"
                     android:text="사용자 이름"
-                    android:textColor="#FFF"/>
+                    android:textColor="#FFF" />
             </LinearLayout>
-
-            <ImageButton
-                android:id="@+id/player_sharebtn"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:paddingBottom="2dp"
-                android:src="@drawable/sharebtn"
-                android:scaleType="fitCenter"
-                android:background="#00FF0000"/>
-            <ImageButton
-                android:id="@+id/player_fullscreenBtn"
+            <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:src="@drawable/fullscreenbtn"
-                android:scaleType="fitCenter"
-                android:background="#00FF0000"/>
+                android:layout_weight="2"
+                android:orientation="horizontal"
+                android:background="@null">
+                <ImageButton
+                    android:id="@+id/player_sharebtn"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_gravity="center"
+                    android:paddingRight="2dp"
+                    android:background="@null"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/sharebtn" />
 
+                <ImageButton
+                    android:id="@+id/player_fullscreenBtn"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@null"
+
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/fullscreenbtn" />
+            </LinearLayout>
         </LinearLayout>
 
         <android.support.v7.widget.RecyclerView
@@ -86,87 +95,95 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/player_controller"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
+        android:background="@null"
         android:orientation="vertical"
-        android:paddingRight="16dp"
-        android:paddingLeft="16dp"
         android:paddingBottom="10dp"
-        android:background="#303030">
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp">
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
             android:layout_marginTop="8dp"
-            android:paddingBottom="6dp"
-            android:gravity="center">
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingBottom="6dp">
+
             <TextView
                 android:id="@+id/player_currentTimeTv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="00:00"
-                android:textSize="12sp"
-                android:textColor="#FFF"/>
+                android:textColor="#FFF"
+                android:textSize="12sp" />
+
             <SeekBar
                 android:id="@+id/player_seekbar"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"/>
+                android:layout_weight="1" />
+
             <TextView
                 android:id="@+id/player_durationTv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="00:00"
-                android:textSize="12sp"
-                android:textColor="#FFF"/>
+                android:textColor="#FFF"
+                android:textSize="12sp" />
 
         </LinearLayout>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="30dp"
-            android:orientation="horizontal"
-            android:gravity="center">
+            android:gravity="center"
+            android:background="@null"
+            android:orientation="horizontal">
 
             <ImageButton
                 android:id="@+id/player_repeatBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/unrepeatbtn"
+                android:background="@null"
                 android:scaleType="fitCenter"
-                android:background="@null"/>
+                android:src="@drawable/unrepeatbtn" />
 
             <ImageButton
                 android:id="@+id/player_previousBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/previousbtn"
+                android:background="@null"
                 android:scaleType="fitCenter"
-                android:background="@null"/>
+                android:src="@drawable/previousbtn" />
 
             <ImageButton
                 android:id="@+id/player_playBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/pausebtn"
+                android:background="@null"
                 android:scaleType="fitCenter"
-                android:background="@null"/>
+                android:src="@drawable/pausebtn" />
 
             <ImageButton
                 android:id="@+id/player_nextBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/nextbtn"
+                android:background="@null"
                 android:scaleType="fitCenter"
-                android:background="@null"/>
+                android:src="@drawable/nextbtn" />
 
             <ImageButton
                 android:id="@+id/player_randomBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/unrandombtn"
+                android:background="@null"
                 android:scaleType="fitCenter"
-                android:background="@null"/>
+                android:src="@drawable/unrandombtn" />
         </LinearLayout>
+
     </LinearLayout>
 </FrameLayout>

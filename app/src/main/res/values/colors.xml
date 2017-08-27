@@ -4,4 +4,10 @@
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
     <color name="defaultColor">#303030</color>
+    <color name="mainBackGroundColor">#292C34</color>
+    <color name="mainToolbarColor">#FF3469</color>
+    <color name="mainTabColor">#FFF</color>
+    <color name="mainTabTextColor">#FF3469</color>
+    <color name="mainTextColor">#DDDDDD</color>
+    <!--<color name="mainItemClickedColor">#FFF</color>-->
 </resources>

@@ -41,7 +41,7 @@ public class MyTabRecyclerAdapter extends RecyclerView.Adapter<MyTabViewHolder> 
         if(playlists.get(position).getMusics().size() != 0) {
             Glide.with(context).load(playlists.get(position).getMusics().get(0).getImgUrl()).fitCenter().into(holder.getPlaylistIcon());
         }else {
-            Glide.with(context).load(R.drawable.temp).fitCenter().into(holder.getPlaylistIcon());
+            Glide.with(context).load(R.drawable.music_default).fitCenter().into(holder.getPlaylistIcon());
         }
         Glide.with(context).load(R.drawable.optionmenu).fitCenter().into(holder.getSettingBtn());
         holder.getPlaylistTitle().setText(playlists.get(position).getTitle());

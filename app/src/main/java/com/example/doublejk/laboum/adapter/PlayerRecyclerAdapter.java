@@ -1,6 +1,7 @@
 package com.example.doublejk.laboum.adapter;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,6 +10,7 @@ import android.view.ViewGroup;
 import com.bumptech.glide.Glide;
 import com.example.doublejk.laboum.model.Music;
 import com.example.doublejk.laboum.R;
+import com.example.doublejk.laboum.util.ColorConverter;
 import com.example.doublejk.laboum.viewholder.PlaylistViewHolder;
 
 import java.util.ArrayList;
@@ -30,20 +32,30 @@ public class PlayerRecyclerAdapter extends RecyclerView.Adapter<PlaylistViewHold
 
     @Override
     public PlaylistViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.recyclerview_popular_music, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.recyclerview_home, parent, false);
         playlistViewHolder = new PlaylistViewHolder(view, musics);
         return playlistViewHolder;
     }
 
     @Override
     public void onBindViewHolder(final PlaylistViewHolder holder, int position) {
+        int color = Color.rgb(69, 90, 100);
+        int lightColor = ColorConverter.lighter(color, 0.15f);
+        if(musics.get(getPlayingMusicPostion()).getPaletteColor().getDarkVibrantRgb() != 0) {
+            color = musics.get(getPlayingMusicPostion()).getPaletteColor().getDarkVibrantRgb();
+            lightColor = ColorConverter.lighter(musics.get(getPlayingMusicPostion()).getPaletteColor().getDarkVibrantRgb(), 0.15f);
+        }else if(musics.get(getPlayingMusicPostion()).getPaletteColor().getDarkMutedRgb() != 0) {
+            color = musics.get(getPlayingMusicPostion()).getPaletteColor().getDarkMutedRgb();
+            lightColor = ColorConverter.lighter(musics.get(getPlayingMusicPostion()).getPaletteColor().getDarkMutedRgb(), 0.15f);
+        }
         Glide.with(context).load(musics.get(position).getImgUrl()).fitCenter().into(holder.getMusicImg());
         Glide.with(context).load(R.drawable.optionmenu).fitCenter().into(holder.getMusicSettingBtn());
         holder.getMusicTitle().setText(musics.get(position).getTitle());
-        if(position == getPlayingMusicPostion())
-            holder.getItemView().setBackgroundColor(musics.get(getPlayingMusicPostion()).getPaletteColor().getDarkVibrantRgb());
-        else
-            holder.getItemView().setBackgroundColor(musics.get(getPlayingMusicPostion()).getPaletteColor().getVibrantRgb());
+        if(position == getPlayingMusicPostion()) {
+            holder.getItemView().setBackgroundColor(lightColor);
+        } else {
+            holder.getItemView().setBackgroundColor(color);
+        }
     }
 
     @Override

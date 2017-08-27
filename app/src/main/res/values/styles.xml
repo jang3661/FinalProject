@@ -18,4 +18,9 @@
         <item name="android:textColorPrimary">#000000</item>
     </style>
 
+    <style name="ToolbarColoredBackArrow" parent="AppTheme">
+        <item name="android:textColorSecondary">#FFFFFF
+        </item>
+    </style>
+
 </resources>

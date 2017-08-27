@@ -1,5 +1,6 @@
 package com.example.doublejk.laboum.model;
 
+import android.graphics.Color;
 import android.os.Parcel;
 import android.os.Parcelable;
 

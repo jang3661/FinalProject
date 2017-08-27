@@ -3,31 +3,32 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:background="#303030"
-    android:paddingTop="16dp"
-    android:paddingLeft="16dp"
-    android:paddingRight="16dp"
-    android:paddingBottom="16dp">
+    android:background="@null">
 
     <LinearLayout
         android:id="@+id/mytab_linear"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="8"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_marginTop="8dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginBottom="8dp"
+        android:background="@null">
         <ImageView
             android:id="@+id/mytab_img"
             android:layout_width="0dp"
-            android:layout_height="40dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
             android:adjustViewBounds="true"
-            android:background="#C0C0C0"
+            android:background="#BDBDBD"
             android:layout_marginRight="16dp"/>
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="2"
+            android:layout_gravity="center_vertical"
             android:orientation="vertical">
 
             <TextView
@@ -44,13 +45,16 @@
                 android:textColor="#DDDDDD"/>
 
         </LinearLayout>
-
     </LinearLayout>
+
     <ImageButton
         android:id="@+id/mytab_imgbtn"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="40dp"
         android:layout_weight="1"
-        android:background="#00FF0000"/>
+        android:layout_gravity="center"
+        android:layout_marginRight="16dp"
+        android:background="@null"
+        android:padding="0dp"/>
 
 </LinearLayout>

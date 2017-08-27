@@ -16,7 +16,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class Main2Activity extends AppCompatActivity {
+public class TestActivity extends AppCompatActivity {
 
 
     private static final String YOUTUBE_API_KEY = "AIzaSyC1rMU-mkhoyTvBIdTnYU0dss0tU9vtK48";
@@ -42,7 +42,7 @@ public class Main2Activity extends AppCompatActivity {
      */
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main2);
+        setContentView(R.layout.activity_test);
         ButterKnife.bind(this);
         initializeYoutubeFragment();
         initializeDraggablePanel();

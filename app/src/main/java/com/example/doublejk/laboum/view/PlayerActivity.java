@@ -2,6 +2,7 @@ package com.example.doublejk.laboum.view;
 
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -30,12 +31,14 @@ import com.example.doublejk.laboum.model.Room;
 import com.example.doublejk.laboum.retrofit.FCMRetroClient;
 import com.example.doublejk.laboum.retrofit.NodeRetroClient;
 import com.example.doublejk.laboum.retrofit.RetroCallback;
+import com.example.doublejk.laboum.util.ColorConverter;
 import com.example.doublejk.laboum.util.DimensionConverter;
 import com.example.doublejk.laboum.util.GlidePalette;
 import com.google.android.youtube.player.YouTubeBaseActivity;
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubePlayer;
 import com.google.android.youtube.player.YouTubePlayerView;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.squareup.otto.Subscribe;
 
@@ -50,21 +53,13 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer.OnInitializedListener,
-        YouTubePlayer.OnFullscreenListener, SeekBar.OnSeekBarChangeListener{
-    YouTubePlayerView youTubePlayerView;
-    static final String YOUTUBE_KEY = "AIzaSyBwqHpHu9AwlEfiIVKcJ4rsBWOfgP6WmB0";
-    private RecyclerView recyclerView;
-    private PlayerRecyclerAdapter playerRecyclerAdapter;
-    private LinkedHashMap<Integer, Music> PlayerMusics;
-    private ArrayList<Music> musics;
-    private YouTubePlayer youTubePlayer;
-    private List<String> videoIds;
-    private MyPlaybackEventListener myPlaybackEventListener;
-    private MyPlayerStateChangeListener myPlayerStateChangeListener;
-    private MyPlaylistEventListener myPlaylistEventListener;
-    private GlidePalette glidePalette;
+        YouTubePlayer.OnFullscreenListener, SeekBar.OnSeekBarChangeListener {
+    @BindView(R.id.player_recyclerview) RecyclerView recyclerView;
+    @BindView(R.id.youtube_view) YouTubePlayerView youTubePlayerView;
     @BindView(R.id.player_layout)  FrameLayout playerLayout;
     @BindView(R.id.player_divider) LinearLayout divider;
+    @BindView(R.id.player_info) LinearLayout infoLayout;
+    @BindView(R.id.player_controller) LinearLayout controllerLayout;
     @BindView(R.id.player_playBtn) ImageButton playBtn;
     @BindView(R.id.player_previousBtn) ImageButton previousBtn;
     @BindView(R.id.player_nextBtn) ImageButton nextBtn;
@@ -77,19 +72,24 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
     @BindView(R.id.player_playlist_name) TextView playlistName;
     @BindView(R.id.player_user_name) TextView userName;
     @BindView(R.id.player_seekbar) SeekBar seekBar;
+    private PlayerRecyclerAdapter playerRecyclerAdapter;
+    private ArrayList<Music> musics;
+    private YouTubePlayer youTubePlayer;
+    private List<String> videoIds;
+    private MyPlaybackEventListener myPlaybackEventListener;
+    private MyPlayerStateChangeListener myPlayerStateChangeListener;
+    private MyPlaylistEventListener myPlaylistEventListener;
     private Window window;
     private TimerTask timerTask;
     private Timer timer;
     private Playlist playlist;
-    private boolean isPlayStarted, doTouchPlayer, isClickedRandomBtn, isClickedShareBtn;
-    private int stateFlag;
+    private boolean isPlayStarted, doTouchPlayer, isClickedRandomBtn, isClickedShareBtn, isMaster;
+    private int stateFlag, playingPos, playingCurrentMillis;
     private NodeRetroClient nodeRetroClient;
-    private SharedPreferences sp;
     private SharedPreferences.Editor editor;
     private Room myRoom;
     private FCMRetroClient fcmRetroClient;
-
-
+    static final String YOUTUBE_KEY = "AIzaSyBwqHpHu9AwlEfiIVKcJ4rsBWOfgP6WmB0";
     private final int ORDINARY_PLAY = 0;
     private final int REPEAT_PLAY = 1;
     private final int ONE_REPEAT_PLAY = 2;
@@ -98,53 +98,48 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_player);
-        PlayerControlProvider.getInstance().register(this);
+
         ButterKnife.bind(this);
-        Log.d("onCreate", "오오");
-        nodeRetroClient = NodeRetroClient.getInstance(this).createBaseApi();
-        fcmRetroClient = FCMRetroClient.getInstance(this).createBaseApi();
-
-        videoIds = new ArrayList<>();
-        glidePalette = new GlidePalette();
-
-        seekBar.setOnSeekBarChangeListener(this);
-
-        receiveDataInit();
-
-       // new UriToPalette().execute(musics);
-        myPlaybackEventListener = new MyPlaybackEventListener();
-        myPlayerStateChangeListener = new MyPlayerStateChangeListener();
-        myPlaylistEventListener = new MyPlaylistEventListener();
-
-        recyclerView = (RecyclerView) findViewById(R.id.player_recyclerview);
-        //recyclerView.addItemDecoration(new DividerItemDecoration(this, ));
-        //recyclerView.addItemDecoration(new CustomDividerItemDecoration(this));
-
-        playerRecyclerAdapter = new PlayerRecyclerAdapter(this, musics);
-        playerRecyclerAdapter.setPlayingMusicPostion(0); //현재 재생중인 노래 index
-        recyclerView.setAdapter(playerRecyclerAdapter);
-        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        PlayerControlProvider.getInstance().register(this);
+        receiveMusicList();
+        initView();
+        backGroundColorInit();
 
         recyclerView.addOnItemTouchListener(new RecyclerItemClickListener(getApplicationContext(),
                 recyclerView, new RecyclerItemClickListener.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
+                if(isMaster) {
+                    Log.d("북", "ㅇㅇ");
+                    postGroupMsg(new FirebaseMessage("/topics/"+playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')), "itemClick", position, 0));
+                }
                 doTouchPlayer = true;
                 youTubePlayer.loadVideos(videoIds, position, 0);
                 updateData(position);
             }
 
             @Override
-            public void onLongItemClick(View view, int position) {
-
-            }
+            public void onLongItemClick(View view, int position) { }
         }));
-        backGroundColorInit();
+    }
 
-        youTubePlayerView = (YouTubePlayerView) findViewById(R.id.youtube_view);
-        youTubePlayerView.initialize(YOUTUBE_KEY, this);
+    public void initView() {
+        nodeRetroClient = NodeRetroClient.getInstance(this).createBaseApi();
+        fcmRetroClient = FCMRetroClient.getInstance(this).createBaseApi();
+
+        myPlaybackEventListener = new MyPlaybackEventListener();
+        myPlayerStateChangeListener = new MyPlayerStateChangeListener();
+        myPlaylistEventListener = new MyPlaylistEventListener();
+        seekBar.setOnSeekBarChangeListener(this);
+
+        playerRecyclerAdapter = new PlayerRecyclerAdapter(this, musics);
+        playerRecyclerAdapter.setPlayingMusicPostion(playingPos); //현재 재생중인 노래 index
+        recyclerView.scrollToPosition(playingPos);
+        recyclerView.setAdapter(playerRecyclerAdapter);
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
 
         timer = new Timer();
+        youTubePlayerView.initialize(YOUTUBE_KEY, this);
     }
     public void postGroupMsg(FirebaseMessage firebaseMessage) {
         fcmRetroClient.postGroupMsg(firebaseMessage, new RetroCallback() {
@@ -165,15 +160,43 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
 
     @Subscribe
     public void playerControl(PushEvent mPushEvent) {
-        if(mPushEvent.getPushData().get("action").equals("next")) {
-            doTouchPlayer = true;
-            if(playerRecyclerAdapter.getPlayingMusicPostion() < videoIds.size() -1) {
-                updateData(playerRecyclerAdapter.getPlayingMusicPostion() +1);
-                youTubePlayer.loadVideos(videoIds, playerRecyclerAdapter.getPlayingMusicPostion(), 0);
-            }else {
-                updateData(0);
-                youTubePlayer .loadVideos(videoIds, 0, 0);
-            }
+        switch (mPushEvent.getPushData().get("action")) {
+            case "next":
+                onPlayerClick(nextBtn);
+                break;
+            case "previous":
+                onPlayerClick(previousBtn);
+                break;
+            case "play":
+                onPlayerClick(playBtn);
+                break;
+            case "fullscreen":
+                onPlayerClick(fullSreenBtn);
+                break;
+            case "random":
+                onPlayerClick(randomBtn);
+                break;
+            case "repeat":
+                onPlayerClick(repeatBtn);
+                break;
+            case "seekbar":
+                onStartTrackingTouch(seekBar);
+                seekBar.setProgress(Integer.valueOf(mPushEvent.getPushData().get("currentMillis")));
+                onStopTrackingTouch(seekBar);
+                break;
+            case "itemClick":
+                int position = Integer.valueOf(mPushEvent.getPushData().get("playingMusicIndex"));
+                doTouchPlayer = true;
+                youTubePlayer.loadVideos(videoIds, position, 0);
+                updateData(position);
+                break;
+            case "playlistInfo":
+                Log.d("버스2", "" + playerRecyclerAdapter.getPlayingMusicPostion() + " " + youTubePlayer.getCurrentTimeMillis() + " " + youTubePlayer.getDurationMillis());
+                postGroupMsg(new FirebaseMessage(mPushEvent.getPushData().get("token"), "reply", playerRecyclerAdapter.getPlayingMusicPostion(), youTubePlayer.getCurrentTimeMillis()));
+                break;
+            case "end":
+                FirebaseMessaging.getInstance().unsubscribeFromTopic(playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')));
+                break;
         }
     }
 
@@ -230,6 +253,7 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         super.onBackPressed();
         if(timerTask != null) {
             timerTask.cancel();
+            timer.cancel();
         }
     }
 
@@ -256,15 +280,33 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         return time;
     }
 
+    public void receiveMusicList() {
+        playingCurrentMillis = getIntent().getIntExtra("currentMillis", 0);
+        playingPos = getIntent().getIntExtra("playingPos", 0);
+        Log.d("머야!!", "" + playingCurrentMillis + " " + playingPos);
+        playlist = getIntent().getParcelableExtra("playlist");
+        musics = playlist.getMusics();
+        videoIds = new ArrayList<>();
+        for(int i = 0; i < musics.size(); i++) {
+            videoIds.add(musics.get(i).getVideoId());
+        }
+    }
+
     public void backGroundColorInit() {
+        int color = changeColor(playingPos);
+        int darkColor = ColorConverter.darker(color, 0.8f);
+        int lightColor = ColorConverter.lighter(color, 0.15f);
+
         window = getWindow();
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
 
-        //window.setStatusBarColor(musics.get(0).getPaletteColor().getDarkVibrantRgb());
-        playerLayout.setBackgroundColor(musics.get(0).getPaletteColor().getVibrantRgb());
+        //window.setStatusBarColor(darkColor);
+        controllerLayout.setBackgroundColor(darkColor);
+        infoLayout.setBackgroundColor(darkColor);
+        playerLayout.setBackgroundColor(color);
         if(musics.size() < 5) {
-            divider.setBackgroundColor(musics.get(0).getPaletteColor().getDarkVibrantRgb());
+            divider.setBackgroundColor(lightColor);
             divider.setVisibility(View.VISIBLE);
         } else {
             //나중에 다른곳도 추가해줘야한다. 재생목록 추가삭제할때
@@ -273,30 +315,34 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         playlistName.setText(playlist.getTitle());
         userName.setText(playlist.getUserName());
     }
-    public void receiveDataInit() {
-//        Gson gson = new Gson();
-//        PlayerMusics = new LinkedHashMap<>();
-//        String musicList = getIntent().getStringExtra("musicInfo");
-//        Type entityType = new TypeToken<LinkedHashMap<Integer, Music>>(){}.getType();
-//        PlayerMusics = gson.fromJson(musicList, entityType);
-//
-//        Iterator<Integer> keys = PlayerMusics.keySet().iterator();
-//        musics = new ArrayList<>();
-//        while (keys.hasNext()) {
-//            final Music music = PlayerMusics.get(keys.next());
-//            musics.add(music);
-//            videoIds.add(music.getVideoId());
-//        }
+    public int changeColor(int position) {
+        if(musics.get(position).getPaletteColor().getDarkVibrantRgb() != 0) {
+            return musics.get(position).getPaletteColor().getDarkVibrantRgb();
+        }else if(musics.get(position).getPaletteColor().getDarkMutedRgb() != 0) {
+            return musics.get(position).getPaletteColor().getDarkMutedRgb();
+        }else {
+            return Color.rgb(69, 90, 100);
+        }
+    }
+    public void updateData(int position) {
+        int color = changeColor(position);
+        int darkColor = ColorConverter.darker(color, 0.8f);
+        int lightColor = ColorConverter.lighter(color, 0.15f);
 
-//        musics = new ArrayList<>();
-//        musics = getIntent().getParcelableArrayListExtra("musicInfo");
-//        for(int i = 0; i < musics.size(); i++) {
-//            videoIds.add(musics.get(i).getVideoId());
-//        }
-        playlist = getIntent().getParcelableExtra("playlist");
-        musics = playlist.getMusics();
-        for(int i = 0; i < musics.size(); i++) {
-            videoIds.add(musics.get(i).getVideoId());
+        recyclerView.scrollToPosition(position);
+        playerRecyclerAdapter.setPlayingMusicPostion(position);
+        playerRecyclerAdapter.notifyDataSetChanged();
+
+        //window.setStatusBarColor(darkColor);
+        controllerLayout.setBackgroundColor(darkColor);
+        infoLayout.setBackgroundColor(darkColor);
+        playerLayout.setBackgroundColor(color);
+        //divider 색변경
+        if(musics.size() < 5) {
+            divider.setBackgroundColor(lightColor);
+        }
+        else {
+            divider.setVisibility(View.GONE);
         }
     }
 
@@ -311,7 +357,7 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         youTubePlayer.setOnFullscreenListener(this);
         //youTubePlayer.setFullscreenControlFlags(youTubePlayer.FULLSCREEN_FLAG_CONTROL_SYSTEM_UI);
 
-        youTubePlayer.loadVideos(videoIds);
+        youTubePlayer.loadVideos(videoIds, playingPos, playingCurrentMillis);
     }
     public void showLog(String s) {
         Log.d(s, "보여라");
@@ -334,6 +380,9 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
     public void onPlayerClick(View v) {
         switch (v.getId()) {
             case R.id.player_playBtn:
+                if(isMaster) {
+                   postGroupMsg(new FirebaseMessage(playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')), "play"));
+                }
                 if(youTubePlayer.isPlaying()) {
                     playBtn.setImageResource(R.drawable.playbtn);
                     youTubePlayer.pause();
@@ -343,7 +392,9 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
                 }
                 break;
             case R.id.player_nextBtn:
-                postGroupMsg(new FirebaseMessage(playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')), "next"));
+                if(isMaster) {
+                    postGroupMsg(new FirebaseMessage(playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')), "next"));
+                }
                 doTouchPlayer = true;
                 if(playerRecyclerAdapter.getPlayingMusicPostion() < videoIds.size() -1) {
                     updateData(playerRecyclerAdapter.getPlayingMusicPostion() +1);
@@ -354,6 +405,9 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
                 }
                 break;
             case R.id.player_previousBtn:
+                if(isMaster) {
+                    postGroupMsg(new FirebaseMessage(playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')), "previous"));
+                }
                 doTouchPlayer = true;
                 if(playerRecyclerAdapter.getPlayingMusicPostion() > 0) {
                     updateData(playerRecyclerAdapter.getPlayingMusicPostion() -1);
@@ -364,10 +418,16 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
                 }
                 break;
             case R.id.player_fullscreenBtn:
+                if(isMaster) {
+                    postGroupMsg(new FirebaseMessage(playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')), "fullscreen"));
+                }
                 youTubePlayer.setPlayerStyle(YouTubePlayer.PlayerStyle.DEFAULT);
                 youTubePlayer.setFullscreen(true);
                 break;
             case R.id.player_repeatBtn:
+                if(isMaster) {
+                    postGroupMsg(new FirebaseMessage(playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')), "repeat"));
+                }
                 if(stateFlag == ORDINARY_PLAY) {
                     stateFlag = REPEAT_PLAY;
                     repeatBtn.setImageResource(R.drawable.repeatbtn);
@@ -380,6 +440,9 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
                 }
                 break;
             case R.id.player_randomBtn:
+                if(isMaster) {
+                    postGroupMsg(new FirebaseMessage(playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')), "random"));
+                }
                 if(isClickedRandomBtn) {
                     randomBtn.setImageResource(R.drawable.unrandombtn);
                     isClickedRandomBtn = false;
@@ -405,16 +468,14 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
                                 public void onClick(DialogInterface dialog, int id) {
                                     myRoom = new Room(roomName.getText().toString(), playlist.getUserEmail(), playlist.getUserName(), playlist.getTitle());
                                     myRoom.setPlaylist(playlist);
-                                    FirebaseMessaging.getInstance().subscribeToTopic(playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')));
                                     postCreateRoom(myRoom);
                                     isClickedShareBtn = true;
+                                    isMaster = true;
                                     Toast.makeText(getApplicationContext(), "방을 공유하였습니다.", Toast.LENGTH_SHORT).show();
-
                                 }
                             })
                             .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int id) {
-                                    //다시 색 바꿔주고
                                     dialog.cancel();
                                 }
                             });
@@ -423,29 +484,15 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
                     //어차피 현재상태에서 방목록 못본다.
                 }else {
                     postDeleteRoom(myRoom);
+                    postGroupMsg(new FirebaseMessage(playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')), "end"));
                     isClickedShareBtn = false;
+                    isMaster = false;
                     Toast.makeText(getApplicationContext(), "공유를 해제하였습니다.", Toast.LENGTH_SHORT).show();
                 }
                 break;
         }
     }
 
-    public void updateData(int position) {
-        Log.d("보여라!!!updateData", "" + position);
-        recyclerView.scrollToPosition(position);
-        playerRecyclerAdapter.setPlayingMusicPostion(position);
-        playerRecyclerAdapter.notifyDataSetChanged();
-
-        //window.setStatusBarColor(musics.get(position).getPaletteColor().getDarkVibrantRgb());
-        playerLayout.setBackgroundColor(musics.get(position).getPaletteColor().getVibrantRgb());
-        //divider 색변경
-        if(musics.size() < 5) {
-            divider.setBackgroundColor(musics.get(position).getPaletteColor().getDarkVibrantRgb());
-        }
-        else {
-            divider.setVisibility(View.GONE);
-        }
-    }
 
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -463,6 +510,9 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
 
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
+        if(isMaster) {
+            postGroupMsg(new FirebaseMessage("/topics/" + playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')), "seekbar", 0, seekBar.getProgress()));
+        }
         isPlayStarted = true;
         doTouchPlayer = false;
         youTubePlayer.loadVideos(videoIds, playerRecyclerAdapter.getPlayingMusicPostion(), seekBar.getProgress());
@@ -490,7 +540,6 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
     }
 
     public void postDeleteRoom(Room room) {
-        Toast.makeText(this, "검색 결과!", Toast.LENGTH_SHORT).show();
         nodeRetroClient.postDeleteRoom(room, new RetroCallback() {
             @Override
             public void onError(Throwable t) {
@@ -619,8 +668,7 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         public void onPlaylistEnded() {
             showLog("onPlaylistEnded!");
             if(stateFlag == REPEAT_PLAY && playerRecyclerAdapter.getPlayingMusicPostion() == videoIds.size() -1) {
-//                //랜덤일때 제어해줘야함
-
+                //랜덤일때 제어해줘야함
             }else if(stateFlag == ONE_REPEAT_PLAY) {
 
             }
@@ -634,71 +682,7 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         if(timer != null) {
             timer.cancel();
         }
+        youTubePlayer.release();
         FirebaseMessaging.getInstance().unsubscribeFromTopic(playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')));
     }
-    /*public class UriToPalette extends AsyncTask<ArrayList<Music>, Void, ArrayList<PaletteColor>> {
-
-        @Override
-        protected ArrayList<PaletteColor> doInBackground(ArrayList<Music>... params) {
-            ArrayList<PaletteColor> colors = new ArrayList<>();
-            ArrayList<Music> items = params[0];
-            PaletteColor paletteColor;
-            for(int i = 0; i < items.size(); i++) {
-                try {
-                    Log.d("맞냐", ""+items.get(i).getImgUrl());
-                    URL url = new URL(items.get(i).getImgUrl());
-                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                    connection.setDoInput(true);
-                    connection.connect();
-                    InputStream inputStream = connection.getInputStream();
-                    Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-                    Palette palette = Palette.from(bitmap).generate();
-
-                    if(palette == null) {
-                        Log.d("놀이냐", "");
-                        paletteColor = new PaletteColor(0, 0, 0);
-                    }
-                    else {
-                        Palette.Swatch vibrantSwatch = palette.getVibrantSwatch();
-                        if (vibrantSwatch != null) {
-                            paletteColor = new PaletteColor(vibrantSwatch.getRgb(),
-                                    vibrantSwatch.getTitleTextColor(), vibrantSwatch.getBodyTextColor());
-                            Log.d("응응", "" + vibrantSwatch.getRgb());
-                        }
-                        else {
-                            paletteColor = new PaletteColor(0, 0, 0);
-                        }
-
-                    }
-
-                    colors.add(paletteColor);
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return null;
-                }
-            }
-            return colors;
-        }
-
-    *//*      Palette.Swatch mutedSwatch = palette.getMutedSwatch();
-          if(mutedSwatch != null) {
-              hashMap.put("mutedRgb", mutedSwatch.getRgb());
-              hashMap.put("mutedTitle", mutedSwatch.getTitleTextColor());
-              hashMap.put("mutedBody", mutedSwatch.getBodyTextColor());
-          }*//*
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-
-        @Override
-        protected void onPostExecute(ArrayList<PaletteColor> colors) {
-            super.onPostExecute(colors);
-            for(int i = 0; i < musics.size(); i++) {
-                Log.d("과연", "" + colors.get(i).getVibrantRgb());
-                musics.get(i).setPaletteColor(colors.get(i));
-            }
-        }
-    }*/
 }

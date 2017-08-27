@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:clipToPadding="false"
         android:paddingBottom="50dp"
-        android:background="#303030">
+        android:background="@color/mainBackGroundColor">
     </android.support.v7.widget.RecyclerView>
 
     <LinearLayout
@@ -27,6 +27,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:background="@null"
             android:text="선택해제" />
 
         <Button
@@ -34,6 +35,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:background="@null"
             android:text="선택재생" />
 
         <Button
@@ -41,6 +43,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:background="@null"
             android:text="담    기" />
     </LinearLayout>
 

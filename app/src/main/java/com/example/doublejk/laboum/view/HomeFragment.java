@@ -221,7 +221,8 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
                 //현재 플레이리스트에 저장, 디비에도 저장
                 //MainActivity.getPlaylist(NowPlayingPlaylist.title).setMusics(musicMap);
                 Playlist playlist = MainActivity.getPlaylist(NowPlayingPlaylist.title);
-                Log.d("select", playlist.getTitle() + " " + musicMap.size());
+                //처음 클릭한 노래부터 재생하기 위한 변수
+                int playingPos = playlist.getMusics().size();
                 playlist.add(musicMap);
                 sqLiteHelper.insert(musicMap, NowPlayingPlaylist.title);
                 //myFragment 갱신, 선택한 곡들 추가
@@ -239,6 +240,7 @@ public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemC
 
                 Intent intent = new Intent(getActivity(), PlayerActivity.class);
                 intent.putExtra("playlist", playlist);
+                intent.putExtra("playingPos", playingPos);
                 startActivity(intent); //parcel 시리얼라이즈
 
                 //액티비티 중지되지 않을까?

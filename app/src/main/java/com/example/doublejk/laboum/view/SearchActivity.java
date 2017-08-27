@@ -62,9 +62,7 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
         searchEdit = (EditText) findViewById(R.id.search_edit);
         toolbar = (Toolbar) findViewById(R.id.search_toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle("Raboum");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true); //화살표
-
 
         recyclerView = (RecyclerView) findViewById(R.id.search_recyclerview);
         linearLayout = new LinearLayoutManager(this);

@@ -4,6 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.example.doublejk.laboum.R;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
@@ -21,6 +22,8 @@ public class Playlist implements Parcelable{
     private String userEmail;
     @SerializedName("username")
     private String userName;
+    @SerializedName("token")
+    private String token;
     @SerializedName("musics")
     private ArrayList<Music> musics;
 
@@ -28,6 +31,7 @@ public class Playlist implements Parcelable{
         this.title = title;
         this.userEmail = userEmail;
         this.userName = userName;
+        this.token = FirebaseInstanceId.getInstance().getToken();
         this.musics = new ArrayList<>();
     }
 
@@ -35,6 +39,7 @@ public class Playlist implements Parcelable{
         title = in.readString();
         userEmail = in.readString();
         userName = in.readString();
+        token = in.readString();
         musics = in.createTypedArrayList(Music.CREATOR);
     }
 
@@ -86,6 +91,10 @@ public class Playlist implements Parcelable{
         this.userName = userName;
     }
 
+    public String getToken() {
+        return token;
+    }
+
     public ArrayList<Music> getMusics() {
         return musics;
     }
@@ -112,6 +121,7 @@ public class Playlist implements Parcelable{
         dest.writeString(title);
         dest.writeString(userEmail);
         dest.writeString(userName);
+        dest.writeString(token);
         dest.writeTypedList(musics);
     }
 }

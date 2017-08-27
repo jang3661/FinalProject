@@ -87,7 +87,7 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Play
         }
 
         setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle("Laboum");
+        getSupportActionBar().setTitle("LaBoum");
         getSupportActionBar().setIcon(R.drawable.main_icon);
 
         collapsingToolbar.setTitleEnabled(false);

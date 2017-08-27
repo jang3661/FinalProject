@@ -39,7 +39,7 @@ public class ViewPagerAdpater extends FragmentStatePagerAdapter{
             case 1:
                 return "My";
             case 2:
-                return "공유";
+                return "Share";
             default:
                 return null;
         }
