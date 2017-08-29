@@ -29,7 +29,9 @@ public interface YoutubeApiService {
     final String Base_URL = "https://www.googleapis.com/youtube/v3/";
     //final String  Base_URL = "http://192.168.10.102:3000/";
 
-    //@GET("activities?part=snippet&mine=true")
+    //PLFgquLnL59alGJcdc0BEZJb2p7IgkL0Oe
+    @GET("playlistItems?part=snippet")
+    Call<JsonObject> getPopularTrack(@Query("playlistId") String id, @Query("key") String key, @Query("maxResults") int maxResults);
 
     @GET("search?part=snippet&type=video&videoCategoryId=10")
     Call<JsonObject> getSearch(@Query("q") String word, @Query("key") String key, @Query("maxResults") int maxResults);

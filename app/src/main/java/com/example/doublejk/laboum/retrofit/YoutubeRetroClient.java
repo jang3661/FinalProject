@@ -84,6 +84,28 @@ public class YoutubeRetroClient {
         });
     }
 
+    public void getPopularTrack(String id, String key, int maxResults, final RetroCallback callback) {
+        youtubeApiService.getPopularTrack(id, key, maxResults).enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                if (response.isSuccessful()) {
+                    Log.d("aaaa", "" + response.body().toString());
+                    callback.onSuccess(response.code(), new JsonParsing(response.body()).popularSearchParsing());
+
+                } else {
+                    Log.d("aaaa", "Fail");
+                    callback.onFailure(response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+                Log.d("aaaa", "Fail");
+                callback.onError(t);
+            }
+        });
+    }
+
     public void getPopularSearch(String key, int maxResults, final RetroCallback callback) {
         youtubeApiService.getPopularSearch(key, maxResults).enqueue(new Callback<JsonObject>() {
             @Override
