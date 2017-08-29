@@ -86,7 +86,6 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
     private boolean isPlayStarted, doTouchPlayer, isClickedRandomBtn, isClickedShareBtn, isMaster;
     private int stateFlag, playingPos, playingCurrentMillis;
     private NodeRetroClient nodeRetroClient;
-    private SharedPreferences.Editor editor;
     private Room myRoom;
     private FCMRetroClient fcmRetroClient;
     static final String YOUTUBE_KEY = "AIzaSyBwqHpHu9AwlEfiIVKcJ4rsBWOfgP6WmB0";
@@ -224,7 +223,7 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
     protected void onStop() {
         super.onStop();
         SharedPreferences sf = getSharedPreferences("pref", 0);
-        editor = sf.edit();
+        SharedPreferences.Editor editor = sf.edit();
         editor.putInt("stateFlag", stateFlag);
         editor.putBoolean("randomBtn", isClickedRandomBtn);
         editor.commit();
@@ -463,7 +462,7 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
                     builder.setTitle("재생목록을 공유하시겠습니까?")
                             // Add action buttons
                             .setView(roomName)
-                            .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            .setPositiveButton("확인", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int id) {
                                     myRoom = new Room(roomName.getText().toString(), playlist.getUserEmail(), playlist.getUserName(), playlist.getTitle());

@@ -81,10 +81,10 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Play
         sqliteHelper.uploadPlaylists(playlists);
         sqliteHelper.select();
 
-        Iterator<String> keys = playlists.keySet().iterator();
-        while(keys.hasNext()) {
-            Log.d("Select", "" + playlists.get(keys.next()).getTitle());
-        }
+//        Iterator<String> keys = playlists.keySet().iterator();
+//        while(keys.hasNext()) {
+//            Log.d("Select", "" + playlists.get(keys.next()).getTitle());
+//        }
 
         setSupportActionBar(toolbar);
         getSupportActionBar().setTitle("LaBoum");

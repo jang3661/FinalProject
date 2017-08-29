@@ -36,7 +36,6 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE music(num INTEGER PRIMARY KEY AUTOINCREMENT, videoid TEXT, playlisttitle TEXT, title TEXT, " +
                 "imgurl TEXT, vibrant INT, darkvibrant INT, mute INT, darkmute INT);");
         db.execSQL("CREATE TABLE nowplaylist(num INTEGER PRIMARY KEY AUTOINCREMENT, useremail TEXT, title TEXT);");
-        Log.d("TABLE생성", "ㅇㅇ");
     }
 
     @Override
@@ -82,11 +81,9 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         Playlist playlist;
         Music music;
         while (cursor.moveToNext()) {
-            Log.d("Select", "" + cursor.getString(1));
             playlist = new Playlist(cursor.getString(1), cursor.getString(2), cursor.getString(3));
             Cursor musicCursor = db.rawQuery("SELECT * FROM music WHERE playlisttitle = '" + cursor.getString(1) + "';", null);
             while (musicCursor.moveToNext()) {
-                Log.d("Select", "noMusic" + musicCursor.getInt(5));
                 music = new Music(musicCursor.getString(1), musicCursor.getString(3), musicCursor.getString(4));
                 music.setPaletteColor(new PaletteColor(musicCursor.getInt(5), musicCursor.getInt(6), musicCursor.getInt(7), musicCursor.getInt(8)));
                 playlist.add(music);
@@ -108,10 +105,8 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         cursor.close();
         db.close();
         if(musics.size() != 0) {
-            Log.d("돠돠", "x");
             return musics;
         }else {
-            Log.d("돠돠", "null");
             return null;
         }
     }
@@ -119,7 +114,6 @@ public class SQLiteHelper extends SQLiteOpenHelper {
     public String nowPlaylitSelect(String useremail) {
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT * FROM nowplaylist WHERE useremail = '" + useremail + "';", null);
-        Log.d("Select!!!", useremail + " " + cursor.getCount());
         String playlistName = "";
         while (cursor.moveToNext()) {
             playlistName = cursor.getString(2);
@@ -175,11 +169,9 @@ public class SQLiteHelper extends SQLiteOpenHelper {
     Cursor cursor = db.rawQuery("SELECT * FROM playlist;", null);
     String result = " ";
     while(cursor.moveToNext()) {
-        Log.d("cursor",  "" + cursor.getString(0));
         result += cursor.getString(0) + " " + cursor.getString(1) + " " +
                 cursor.getString(2) + " " + cursor.getString(3) + "\n";
     }
-    Log.d("SELECT", result);
     cursor.close();
     db.close();
 }

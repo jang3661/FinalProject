@@ -37,15 +37,15 @@ public class ShareRecyclerAdpter extends RecyclerView.Adapter<ShareViewHolder> {
 
     @Override
     public void onBindViewHolder(ShareViewHolder holder, int position) {
-        //Glide.with(context).load(R.drawable.music_placeholder).fitCenter().into(holder.getRoomImg());
-        if(rooms.size() != 0) {
-            if (rooms.get(position).getPlaylist().getMusics().size() == 0) {
-                Glide.with(context).load(R.drawable.music_placeholder).fitCenter().into(holder.getRoomImg());
-            } else {
-                        Glide.with(context).load(rooms.get(position).getPlaylist().getMusics()
-                        .get(0).getImgUrl()).fitCenter().into(holder.getRoomImg());
-            }
-        }
+        Glide.with(context).load(R.drawable.music_placeholder).fitCenter().into(holder.getRoomImg());
+//        if(rooms.size() != 0) {
+//            if (rooms.get(position).getPlaylist().getMusics().size() == 0) {
+//                Glide.with(context).load(R.drawable.music_placeholder).fitCenter().into(holder.getRoomImg());
+//            } else {
+//                        Glide.with(context).load(rooms.get(position).getPlaylist().getMusics()
+//                        .get(0).getImgUrl()).fitCenter().into(holder.getRoomImg());
+//            }
+//        }
         holder.getRoomName().setText(rooms.get(position).getTitle());
         holder.getUserName().setText(rooms.get(position).getUserName());
         holder.getUserCount().setText("" + rooms.get(position).getListenerCount() + "명");

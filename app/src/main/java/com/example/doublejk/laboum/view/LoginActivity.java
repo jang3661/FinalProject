@@ -13,13 +13,17 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.doublejk.laboum.NowPlayingPlaylist;
+import com.example.doublejk.laboum.Oauth;
 import com.example.doublejk.laboum.PlaylistSharedPreferences;
 import com.example.doublejk.laboum.R;
 import com.example.doublejk.laboum.SQLiteHelper;
+import com.example.doublejk.laboum.model.AccessToken;
 import com.example.doublejk.laboum.model.MyPlaylist;
 import com.example.doublejk.laboum.model.Playlist;
 import com.example.doublejk.laboum.model.User;
 import com.example.doublejk.laboum.retrofit.NodeRetroClient;
+import com.example.doublejk.laboum.retrofit.OauthRetroClient;
+import com.example.doublejk.laboum.retrofit.OauthService;
 import com.example.doublejk.laboum.retrofit.RetroCallback;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -54,6 +58,8 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
     private SignInButton signInButton;
     private SQLiteHelper sqliteHelper;
     private GoogleSignInResult result;
+    private OauthRetroClient oauthRetroClient;
+    private GoogleSignInAccount account;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,10 +71,11 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
 //        SQLiteDatabase db = sqliteHelper.getWritableDatabase();
 //        sqliteHelper.onDrop(db);
 
+        oauthRetroClient = OauthRetroClient.getInstance(this).createBaseApi();
 
         signInButton = (SignInButton) findViewById(R.id.sign_in_button);
-//        findViewById(R.id.sign_out_button).setOnClickListener(this);
-//        findViewById(R.id.disconnect_button).setOnClickListener(this);
+        findViewById(R.id.sign_out_button).setOnClickListener(this);
+        findViewById(R.id.disconnect_button).setOnClickListener(this);
 
         signInButton.setOnClickListener(this);
 
@@ -87,7 +94,41 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         //firebase 개체 가져오기
         mAuth = FirebaseAuth.getInstance();
 
+    }
 
+//    public void postAccessToken(GoogleSignInAccount account) {
+//        oauthRetroClient.postAccessToken(new AccessToken(account.getServerAuthCode()), new RetroCallback() {
+//            @Override
+//            public void onError(Throwable t) {
+//                Log.e("", t.toString());
+//            }
+//
+//            @Override
+//            public void onSuccess(int code, Object receivedData) {
+//                NowPlayingPlaylist.title = "Basic Playlist";
+//                sqliteHelper.insert(new Playlist(NowPlayingPlaylist.title, account.getEmail(), account.getDisplayName()));
+//                sqliteHelper.insert(account.getEmail(), NowPlayingPlaylist.title);
+//            }
+//            @Override
+//            public void onFailure(int code) {
+//            }
+//        });
+//    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        SharedPreferences sf = getSharedPreferences("pref", 0);
+        SharedPreferences.Editor editor = sf.edit();
+//        editor.putInt("stateFlag", stateFlag);
+//        editor.putBoolean("randomBtn", isClickedRandomBtn);
+        editor.commit();
     }
 
     @Override
@@ -109,48 +150,42 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
             //구글인증 성공시
             if (result.isSuccess()) {
                 // Google Sign In was successful, authenticate with Firebase
-                GoogleSignInAccount account = result.getSignInAccount();
+                account = result.getSignInAccount();
+                Oauth.code = account.getServerAuthCode();
                 firebaseAuthWithGoogle(account);
-
                 sqliteHelper = new SQLiteHelper(this);
                 //유저 등록
-                User user = new User(account.getEmail(), account.getDisplayName(), account.getPhotoUrl().toString());
-                if (sqliteHelper.isPlaylistSelect(account.getEmail())) {
-                    //플레이리스트, 음악 디비정보 가져온다
-                    Log.d("Login", "기존");
-                    NowPlayingPlaylist.title = sqliteHelper.nowPlaylitSelect(account.getEmail());
-                    Log.d("Select!!", "멍미" + NowPlayingPlaylist.title);
-                } else {
-                    //첫 방문
-                    Log.d("Login", "첫방문");
-                    NowPlayingPlaylist.title = "Basic Playlist";
-                    sqliteHelper.insert(new Playlist(NowPlayingPlaylist.title, account.getEmail(), account.getDisplayName()));
-                    sqliteHelper.insert(account.getEmail(), NowPlayingPlaylist.title);
 
-                }
+                oauthRetroClient.getAccessToken(Oauth.code, Oauth.client_id, Oauth.client_secret, Oauth.redirect_uri, Oauth.grant_type, new RetroCallback() {
+                    @Override
+                    public void onError(Throwable t) {
+                        Log.e("", t.toString());
+                    }
 
-
-                //user.getPlaylists().add(new MyPlaylist("asdf", account.getEmail(), account.getDisplayName()));
-
-//                nodeRetroClient = NodeRetroClient.getInstance(getApplicationContext()).createBaseApi();
-//                nodeRetroClient.postLogin(user, new RetroCallback() {
-//                    @Override
-//                    public void onError(Throwable t) {
-//                        Log.e("err", "" + t.toString());
-//                    }
-//                    @Override
-//                    public void onSuccess(int code, Object receivedData) {
-//                        Log.d("postLogin", "" + receivedData);
-//                    }
-//                    @Override
-//                    public void onFailure(int code) {
-//                        Log.e("Fail", "" + code);
-//                    }
-//                });
-
-                Intent intent = new Intent(this, MainActivity.class);
-                intent.putExtra("user", user);
-                startActivity(intent);
+                    @Override
+                    public void onSuccess(int code, Object receivedData) {
+                        Log.d("onSuccess", "" + code + (AccessToken)receivedData);
+                        if (sqliteHelper.isPlaylistSelect(account.getEmail())) {
+                            //플레이리스트, 음악 디비정보 가져온다
+                            Log.d("Login", "기존");
+                            Log.d("봐라", ((AccessToken) receivedData).getAccess_token());
+                            NowPlayingPlaylist.title = sqliteHelper.nowPlaylitSelect(account.getEmail());
+                        } else {
+                            //첫 방문
+                            Log.d("Login", "첫방문");
+                            NowPlayingPlaylist.title = "Basic Playlist";
+                            sqliteHelper.insert(new Playlist(NowPlayingPlaylist.title, account.getEmail(), account.getDisplayName()));
+                            sqliteHelper.insert(account.getEmail(), NowPlayingPlaylist.title);
+                        }
+                        User user = new User(account.getEmail(), account.getDisplayName(), account.getPhotoUrl().toString());
+                        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                        intent.putExtra("user", user);
+                        startActivity(intent);
+                    }
+                    @Override
+                    public void onFailure(int code) {
+                    }
+                });
 
             } else {
                 // Google Sign In failed, update UI appropriately
@@ -243,13 +278,13 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         int i = v.getId();
         if (i == R.id.sign_in_button) {
             signIn();
-//        } else if (i == R.id.sign_out_button) {
-//
-//            signOut();
-//        } else if (i == R.id.disconnect_button) {
-//            revokeAccess();
-//        }
+        } else if (i == R.id.sign_out_button) {
+
+            signOut();
+        } else if (i == R.id.disconnect_button) {
+            revokeAccess();
         }
+
 
 
     }
