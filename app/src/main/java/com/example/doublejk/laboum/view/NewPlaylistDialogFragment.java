@@ -1,12 +1,8 @@
 package com.example.doublejk.laboum.view;
 
-import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
-import android.support.v7.app.AlertDialog;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -15,20 +11,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.doublejk.laboum.NowPlayingPlaylist;
 import com.example.doublejk.laboum.R;
-import com.example.doublejk.laboum.SQLiteHelper;
+import com.example.doublejk.laboum.sqlite.SQLiteHelper;
 import com.example.doublejk.laboum.model.Music;
 import com.example.doublejk.laboum.model.Playlist;
 import com.example.doublejk.laboum.model.User;
-
-import org.w3c.dom.Text;
 
 import java.util.LinkedHashMap;
 

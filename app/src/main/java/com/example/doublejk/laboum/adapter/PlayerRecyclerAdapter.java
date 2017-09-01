@@ -32,7 +32,7 @@ public class PlayerRecyclerAdapter extends RecyclerView.Adapter<PlaylistViewHold
 
     @Override
     public PlaylistViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.recyclerview_home, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.recyclerview_tracks, parent, false);
         playlistViewHolder = new PlaylistViewHolder(view, musics);
         return playlistViewHolder;
     }

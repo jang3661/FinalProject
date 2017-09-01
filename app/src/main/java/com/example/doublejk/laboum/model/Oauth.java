@@ -1,4 +1,4 @@
-package com.example.doublejk.laboum;
+package com.example.doublejk.laboum.model;
 
 /**
  * Created by doublejk on 2017-08-29.

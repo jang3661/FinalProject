@@ -2,12 +2,12 @@ package com.example.doublejk.laboum.adapter;
 
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.util.Log;
 
 import com.example.doublejk.laboum.model.Playlist;
 import com.example.doublejk.laboum.view.HomeFragment;
+import com.example.doublejk.laboum.view.TracksFragment;
 import com.example.doublejk.laboum.view.MyFragment;
 import com.example.doublejk.laboum.view.ShareFragment;
 

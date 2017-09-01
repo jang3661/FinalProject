@@ -14,7 +14,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.doublejk.laboum.R;
-import com.example.doublejk.laboum.SelectedMusicProvider;
+import com.example.doublejk.laboum.tools.SelectedMusicProvider;
 import com.example.doublejk.laboum.model.SelectItem;
 import com.example.doublejk.laboum.model.Music;
 
@@ -115,7 +115,7 @@ public class PopularVideoViewHolder extends RecyclerView.ViewHolder implements V
             case R.id.popular_linear:{
                 if (!v.isSelected()) {
                     Log.d("클릭", "" + getAdapterPosition());
-                    itemView.setBackgroundColor(Color.rgb(160, 160, 160));
+                    itemView.setBackgroundColor(Color.argb(90, 0, 0, 0));
                     selectedMusicProvider.selectedList(position, musics.get(position));
                     selectedItems.add(new SelectItem(itemView, v));
                     v.setSelected(true);

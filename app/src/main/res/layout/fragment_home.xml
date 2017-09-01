@@ -1,63 +1,105 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="com.example.doublejk.laboum.view.HomeFragment">
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/popular_recyclerview"
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/home_layout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:clipToPadding="false"
-        android:paddingBottom="50dp"
-        android:background="@color/mainBackGroundColor">
-    </android.support.v7.widget.RecyclerView>
+        android:layout_height="match_parent"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:background="@color/mainBackGroundColor"
+        android:orientation="vertical"
+        tools:context="com.example.doublejk.laboum.view.HomeFragment">
 
-    <LinearLayout
-        android:id="@+id/selectLinear"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:orientation="horizontal"
-        android:background="#FFF">
-
-        <Button
-            android:id="@+id/resetBtn"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:id="@+id/home_hide_layout"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_marginBottom="8dp"
+            android:layout_marginTop="8dp"
             android:background="@null"
-            android:text="선택해제" />
+            android:orientation="vertical">
 
-        <Button
-            android:id="@+id/playBtn"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@null"
-            android:text="선택재생" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:text="오늘의 추천 트랙"
+                android:textColor="@color/homeTextColer"
+                android:textSize="@dimen/material_text_subhead" />
 
-        <Button
-            android:id="@+id/saveMusic"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@null"
-            android:text="담    기" />
+            <LinearLayout
+                android:id="@+id/home_dayrank_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:id="@+id/home_dayrank_img"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:background="@null" />
+
+                <TextView
+                    android:id="@+id/home_dayrank_txt"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="일간순위 40 KR"
+                    android:textColor="@color/homeTextColer"
+                    android:textSize="@dimen/material_text_body1" />
+
+                <LinearLayout
+                    android:id="@+id/home_weekbest_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:id="@+id/home_weekbest_img"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:background="@null" />
+
+                    <TextView
+                        android:id="@+id/home_weekbest_txt"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:text="주간베스트 40 KR"
+                        android:textColor="@color/homeTextColer"
+                        android:textSize="@dimen/material_text_body1" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:orientation="horizontal"
+                android:background="#9e9e9e">
+            </LinearLayout>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp"
+                android:text="인기트랙"
+                android:textColor="@color/homeTextColer"
+                android:textSize="@dimen/material_text_subhead" />
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/home_recyclerview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/mainBackGroundColor"
+                android:clipToPadding="false"
+                android:paddingBottom="50dp">
+            </android.support.v7.widget.RecyclerView>
+
+
+        </LinearLayout>
+
+
     </LinearLayout>
-
-
-
-    <!--   <android.support.design.widget.BottomNavigationView
-           android:id="@+id/recommend_navigationview"
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:layout_gravity="bottom"
-           android:paddingBottom="48dp"
-           app:itemBackground="@color/cardview_dark_background"
-           app:menu="@menu/menu_navigation">-->
-
-    <!--   </android.support.design.widget.BottomNavigationView>-->
-
-</FrameLayout>

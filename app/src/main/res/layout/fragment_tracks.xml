@@ -1,0 +1,63 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.doublejk.laboum.view.TracksFragment">
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/popular_recyclerview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clipToPadding="false"
+        android:paddingBottom="50dp"
+        android:background="@color/mainBackGroundColor">
+    </android.support.v7.widget.RecyclerView>
+
+    <LinearLayout
+        android:id="@+id/selectLinear"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="horizontal"
+        android:background="#FFF">
+
+        <Button
+            android:id="@+id/resetBtn"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@null"
+            android:text="선택해제" />
+
+        <Button
+            android:id="@+id/playBtn"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@null"
+            android:text="선택재생" />
+
+        <Button
+            android:id="@+id/saveMusic"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@null"
+            android:text="담    기" />
+    </LinearLayout>
+
+
+
+    <!--   <android.support.design.widget.BottomNavigationView
+           android:id="@+id/recommend_navigationview"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:layout_gravity="bottom"
+           android:paddingBottom="48dp"
+           app:itemBackground="@color/cardview_dark_background"
+           app:menu="@menu/menu_navigation">-->
+
+    <!--   </android.support.design.widget.BottomNavigationView>-->
+
+</FrameLayout>

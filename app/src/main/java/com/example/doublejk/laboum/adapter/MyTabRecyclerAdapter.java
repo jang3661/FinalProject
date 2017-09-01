@@ -37,7 +37,6 @@ public class MyTabRecyclerAdapter extends RecyclerView.Adapter<MyTabViewHolder> 
 
     @Override
     public void onBindViewHolder(MyTabViewHolder holder, int position) {
-       // Log.d("왔썹", "ㅇ"+playlists.size() + " " + position + " " + playlists.get(position).getTitle() + " " + playlists.get(position).getMusics().size());
         if(playlists.get(position).getMusics().size() != 0) {
             Glide.with(context).load(playlists.get(position).getMusics().get(0).getImgUrl()).fitCenter().into(holder.getPlaylistIcon());
         }else {

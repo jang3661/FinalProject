@@ -1,381 +1,224 @@
 package com.example.doublejk.laboum.view;
 
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.ActionMenuView;
-import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.Toast;
+import android.widget.TextView;
 
-import com.example.doublejk.laboum.NowPlayingPlaylist;
-import com.example.doublejk.laboum.SQLiteHelper;
-import com.example.doublejk.laboum.adapter.HomeRecyclerAdapter;
+import com.bumptech.glide.Glide;
 import com.example.doublejk.laboum.R;
-import com.example.doublejk.laboum.SelectedMusicProvider;
+import com.example.doublejk.laboum.tools.ServerKey;
+import com.example.doublejk.laboum.adapter.HomeRecyclerAdapter;
 import com.example.doublejk.laboum.model.Music;
-import com.example.doublejk.laboum.model.Playlist;
 import com.example.doublejk.laboum.retrofit.RetroCallback;
-import com.example.doublejk.laboum.retrofit.YoutubeRetroClient;
-import com.example.doublejk.laboum.util.ViewAnimation;
+import com.example.doublejk.laboum.retrofit.youtube.YoutubeRetroClient;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 
-public class HomeFragment extends Fragment implements ActionMenuView.OnMenuItemClickListener,
-        View.OnClickListener{
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 
-    //private OnFragmentInteractionListener mListener;
+public class HomeFragment extends Fragment {
+    //@BindView(R.id.home_dayrank_layout) LinearLayout dayRankLayout;
+    @BindView(R.id.home_dayrank_img) ImageView dayRankImg;
+    @BindView(R.id.home_weekbest_img) ImageView weekBestImg;
+    @BindView(R.id.home_dayrank_txt) TextView dayRankTv;
+    @BindView(R.id.home_weekbest_layout) LinearLayout weekBestLayout;
     private YoutubeRetroClient youtubeRetroClient;
     private RecyclerView recyclerView;
-    private LinkedHashMap<Integer, Music> musicMap;
-    private Button resetBtn, playBtn, saveMusicBtn;
-    private LinearLayout selectingLayout;
-    private LinearLayoutManager linearLayoutManager;
+    private GridLayoutManager gridLayoutManager;
     private HomeRecyclerAdapter homeRecyclerAdapter;
+    private ReplaceFrgmentListener mCallback;
+    private LinearLayout hideLayout;
+    private LinearLayout dayRankLayout;
     private ArrayList<Music> musics;
-    private static final String API_KEY = "AIzaSyAH-UUr_Y7XKUg7OUy38J1H6paTdbgOqGo";
-    private SQLiteHelper sqLiteHelper;
-    private String[] titleList;
-    private PlaylistsChangedListener mCallback;
-    private Boolean getViewSize;
-    public static HomeFragment newInstance() {
-        HomeFragment homeFragment = new HomeFragment();
-/*        Bundle args = new Bundle();
-        args.putBoolean("layoutType", layoutType);
-        args.putInt("SortType", sortType);
-        homeFragment.setArguments(args);*/
-        return homeFragment;
-    }
+    private ArrayList<String> genreBanner;
+    private String banner;
+    private int pos;
+    public final String KOREA_DAYRANK_ID = "PLFgquLnL59amBMs8p7NyAiHK40Mmn3ect";
+    public final String KOREA_WEEKBESE_ID = "PLFgquLnL59akp3Cc6cj1S_4fQxPhdetsO";
+//    public final String[] bannerId = {"PLDcnymzs18LWrKzHmzrGH1JzLBqrHi3xQ", "PLFgquLnL59anNXuf1M87FT1O169Qt6-Lp", "PLH6pfBXQXHEC2uDmDy5oi3tHW6X8kZ2Jo",
+//    "PLVXq77mXV53-Np39jM456si2PeTrEm9Mj", "PLr8RdoI29cXIlkmTAQDgOuwBhDh3yJDBQ", "PLQog_FHUHAFUDDQPOTeAWSHwzFV1Zz5PZ"};
+//    public final String[] bannertxt = {"팝", "최신 뮤직 비디오", "힙합", "클래식", "락", "소울"};
 
     public HomeFragment() {
-        // Required empty public constructor
+    }
+
+    // TODO: Rename and change types and number of parameters
+    public static HomeFragment newInstance() {
+        HomeFragment fragment = new HomeFragment();
+//        Bundle args = new Bundle();
+//        args.putString(ARG_PARAM1, param1);
+//        args.putString(ARG_PARAM2, param2);
+//        fragment.setArguments(args);
+        return fragment;
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_home, container, false);
-        youtubeRetroClient = YoutubeRetroClient.getInstance(getContext()).createBaseApi();
-
-        recyclerView = (RecyclerView) view.findViewById(R.id.popular_recyclerview);
-        linearLayoutManager = new LinearLayoutManager(getActivity());
-        linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-        recyclerView.setLayoutManager(linearLayoutManager);
-
-        selectingLayout = (LinearLayout) view.findViewById(R.id.selectLinear);
-        resetBtn = (Button) view.findViewById(R.id.resetBtn);
-        playBtn = (Button) view.findViewById(R.id.playBtn);
-        saveMusicBtn = (Button) view.findViewById(R.id.saveMusic);
-        resetBtn.setOnClickListener(this);
-        playBtn.setOnClickListener(this);
-        saveMusicBtn.setOnClickListener(this);
-        musicMap = new LinkedHashMap<>();
-
-        getPopularSearch();
-
-        sqLiteHelper = new SQLiteHelper(getActivity());
-        titleList = sqLiteHelper.selectPlaylistTitle();
-
-        getViewSize = true; //animation
-        return view;
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+        }
     }
 
-    public interface PlaylistsChangedListener {
-        public void onChangeMusic(Playlist playlist);
-        public void addPlaylist(Playlist playlist);
+    public interface ReplaceFrgmentListener {
+        public void onReplace(ArrayList<Music> musics, String title);
     }
-
-    SelectedMusicProvider selectedMusicProvider = new SelectedMusicProvider() {
-        @Override
-        public void selectedList(int pos, Music music) {
-            if(getViewSize) {
-                ViewAnimation.init(((MainActivity) getActivity()).getTabLayout(), selectingLayout);
-                getViewSize = false;
-            }
-            Log.d("selected","호출");
-            if(musicMap.size() == 0) {
-                ViewAnimation.tabToSelectLayout(((MainActivity) getActivity()).getTabLayout(), selectingLayout);
-//                ViewAnimation.dropDwon(((MainActivity) getActivity()).getTabLayout());
-//                ViewAnimation.riseUp(selectingLayout);
-            }
-            musicMap.put(pos, music);
-        }
-
-        @Override
-        public void unSelectedList(int pos) {
-            Log.d("unselected","호출");
-            musicMap.remove(pos);
-            if(musicMap.size() == 0) {
-                ViewAnimation.selectLayoutToTab(selectingLayout, ((MainActivity) getActivity()).getTabLayout());
-//                ViewAnimation.dropDwon(selectingLayout);
-//                ViewAnimation.riseUp(((MainActivity) getActivity()).getTabLayout());
-            }
-        }
-    };
 
     @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        Log.d("onSaveInstanceState", "ㅇㅇ");
-        outState.putParcelableArrayList("musics", musics);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View v = inflater.inflate(R.layout.fragment_home, container, false);
+        ButterKnife.bind(this, v);
 
-    }
+        youtubeRetroClient = YoutubeRetroClient.getInstance(getActivity()).createBaseApi();
 
-    public void setTitleList(String[] titleList) {
-        this.titleList = titleList;
-    }
+        recyclerView = (RecyclerView) v.findViewById(R.id.home_recyclerview);
+        recyclerView.setNestedScrollingEnabled(false);
+        gridLayoutManager = new GridLayoutManager(getActivity(), 2);
+        recyclerView.setLayoutManager(gridLayoutManager);
 
-    public void initAnimation() {
-        homeRecyclerAdapter.resetMusicList();
-        ViewAnimation.selectLayoutToTab(selectingLayout, ((MainActivity) getActivity()).getTabLayout());
-        musicMap.clear();
-    }
+//        recyclerView.addOnItemTouchListener(new RecyclerItemClickListener(getContext(),
+//                recyclerView, new RecyclerItemClickListener.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(View view, int position) {
+//                pos = position;
+//                getPopularTraks(bannerId[position]);
+//            }
+//            @Override
+//            public void onLongItemClick(View view, int position) { }
+//        }));
 
-    public void getPopularSearch() {
-        Toast.makeText(getActivity(), "검색 결과!", Toast.LENGTH_SHORT).show();
-        youtubeRetroClient.getPopularSearch(API_KEY, 30, new RetroCallback() {
+
+        dayRankLayout = (LinearLayout) v.findViewById(R.id.home_dayrank_layout);
+        hideLayout = (LinearLayout) v.findViewById(R.id.home_hide_layout);
+        dayRankLayout.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onError(Throwable t) {
-                Log.e("", t.toString());
+            public void onClick(View v) {
+                getPopularTraks(KOREA_DAYRANK_ID);
             }
+        });
+
+        genreBanner = new ArrayList<>();
+        getHomeBanner(KOREA_DAYRANK_ID, dayRankImg);
+        getHomeBanner(KOREA_WEEKBESE_ID, weekBestImg);
+//        getHomeBanner(bannerId[0]);
+        return v;
+    }
+
+    @OnClick(R.id.home_weekbest_layout)
+    public void onBannerClick(View v) {
+        switch (v.getId()) {
+            case R.id.home_weekbest_layout:
+                getPopularTraks(KOREA_WEEKBESE_ID);
+                break;
+        }
+    }
+    public void getHomeBanner(String id, final ImageView bannerImg) {
+        youtubeRetroClient.getPopularTrack(id, ServerKey.Key, 1, new RetroCallback() {
+            @Override
+            public void onError(Throwable t) { }
+
+            @Override
+            public void onSuccess(int code, Object receivedData) {
+                banner = (String) receivedData;
+                Glide.with(getActivity()).load(banner).fitCenter().into(bannerImg);
+            }
+
+            @Override
+            public void onFailure(int code) { }
+        });
+    }
+    public void getHomeBanner(String id) {
+        youtubeRetroClient.getPopularTrack(id, ServerKey.Key, 1, new RetroCallback() {
+            @Override
+            public void onError(Throwable t) { }
+
+            @Override
+            public void onSuccess(int code, Object receivedData) {
+                banner = (String) receivedData;
+                genreBanner.add(banner);
+//                if(genreBanner.size() == 6) {
+//                    homeRecyclerAdapter = new HomeRecyclerAdapter(getContext(), genreBanner, bannertxt);
+//                    recyclerView.setAdapter(homeRecyclerAdapter);
+//                    recyclerView.setItemAnimator(new DefaultItemAnimator());
+//                }else {
+//                    getHomeBanner(bannerId[genreBanner.size()]);
+//                }
+            }
+
+            @Override
+            public void onFailure(int code) { }
+        });
+    }
+
+    public void getPopularTraks(final String id) {
+        youtubeRetroClient.getPopularTrack(id, ServerKey.Key, 40, new RetroCallback() {
+            @Override
+            public void onError(Throwable t) { }
 
             @Override
             public void onSuccess(int code, Object receivedData) {
                 musics = (ArrayList<Music>) receivedData;
-                //멀티쓰레드 돌린다.
-                //new UriToPalette().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, musics);
-                //new UriToPalette().execute(musics);
-                homeRecyclerAdapter = new HomeRecyclerAdapter(getActivity(), musics, selectedMusicProvider);
-                recyclerView.setAdapter(homeRecyclerAdapter);
-                recyclerView.setItemAnimator(new DefaultItemAnimator());
-/*                recyclerAdapter.setItemClick(new SearchRecyclerAdapter.ItemClickListner() {
-                    @Override
-                    public void onItemClickListener(ArrayList<Music> items, int position) {
-                        Intent intent = new Intent(getApplicationContext(), PlayerActivity.class);
-                        intent.putExtra("videoId", items.get(position).getVideoId());
-                        startActivity(intent);
-                        //타이틀도 보내자
-                    }
-                });*/
+                if(id.equals(KOREA_DAYRANK_ID)) {
+                    mCallback.onReplace(musics, "일간순위 40 KR");
+                }
+                else if(id.equals(KOREA_WEEKBESE_ID)) {
+                    mCallback.onReplace(musics, "주간베스트 40 KR");
+                }
+//                }else {
+//                    mCallback.onReplace(musics, bannertxt[pos]);
+//                }
+
             }
+
             @Override
-            public void onFailure(int code) {
-            }
+            public void onFailure(int code) { }
         });
     }
 
-//     public class UriToPalette extends AsyncTask<ArrayList<Music>, Void, ArrayList<Music>> {
-//
-//        @Override
-//        protected ArrayList<Music> doInBackground(ArrayList<Music>... params) {
-//            ArrayList<Music> items = params[0];
-//            for(int i = 0; i < items.size(); i++)
-//                    UrlToColor.setColor(items.get(i));
-//            return items;
-//        }
-//
-//        @Override
-//        protected void onPreExecute() {
-//            super.onPreExecute();
-//        }
-//
-//         @Override
-//         protected void onPostExecute(ArrayList<Music> items) {
-//             super.onPostExecute(items);
-//             musics = items;
-//             //homeRecyclerAdapter.notifyDataSetChanged();
-//             Log.d("ㅇㅇ", "성공");
-//         }
-//     }
-
-    @Override
-    public boolean onMenuItemClick(MenuItem item) {
-        return false;
+    public LinearLayout getDayRankLayout() {
+        return dayRankLayout;
     }
 
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.resetBtn:
-                //클릭한 배경색 초기화, selected false
-                homeRecyclerAdapter.resetMusicList();
-                ViewAnimation.selectLayoutToTab(selectingLayout, ((MainActivity) getActivity()).getTabLayout());
-                musicMap.clear();
-                break;
-            case R.id.playBtn:
-                //현재 플레이리스트에 저장, 디비에도 저장
-                //MainActivity.getPlaylist(NowPlayingPlaylist.title).setMusics(musicMap);
-                Playlist playlist = MainActivity.getPlaylist(NowPlayingPlaylist.title);
-                //처음 클릭한 노래부터 재생하기 위한 변수
-                int playingPos = playlist.getMusics().size();
-                playlist.add(musicMap);
-                sqLiteHelper.insert(musicMap, NowPlayingPlaylist.title);
-                //myFragment 갱신, 선택한 곡들 추가
-                mCallback.onChangeMusic(playlist);
-
-//                Gson gson = new Gson();
-//                String musicList = gson.toJson(musicMap);
-//                Intent intent = new Intent(getActivity(), PlayerActivity.class);
-//                intent.putExtra("musicInfo", musicList);
-//                startActivity(intent); //parcel 시리얼라이즈
-
-//                Intent intent = new Intent(getActivity(), PlayerActivity.class);
-//                intent.putParcelableArrayListExtra("musicInfo", playlist.getMusics());
-//                startActivity(intent); //parcel 시리얼라이즈
-
-                Intent intent = new Intent(getActivity(), PlayerActivity.class);
-                intent.putExtra("playlist", playlist);
-                intent.putExtra("playingPos", playingPos);
-                startActivity(intent); //parcel 시리얼라이즈
-
-                //액티비티 중지되지 않을까?
-                initAnimation();
-                break;
-            case R.id.saveMusic:
-                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-                builder.setTitle("재생목록")
-                        .setItems(titleList, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                if(titleList.length -1 == which) {
-                                    //새 재생목록에 추가
-                                    showDialog();
-                                }else {
-                                    //기존 재생목록에 추가
-                                    Playlist clickedPlaylist = MainActivity.getPlaylist(titleList[which]);
-                                    clickedPlaylist.setMusics(musicMap);
-                                    sqLiteHelper.insert(musicMap, clickedPlaylist.getTitle());
-                                    //기존재생목록이 nowPlayling이면 추가한 노래 재생해야한다
-                                    initAnimation();
-                                    //musicMap을 playlist에 저장, 디비에도 저장
-
-                                }
-                            }
-                        });
-                AlertDialog alertDialog = builder.create();
-                alertDialog.show();
-                break;
-        }
-    }
-    @Override
-    public void onActivityCreated(@Nullable  Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        Log.d("onActivityCreated", "ㅇㅇ");
-        if(savedInstanceState != null)
-            musics = savedInstanceState.getParcelableArrayList("musics");
-    }
-
-    void showDialog() {
-        //보낼 정보 있으면 보내자
-        Log.d("오오", ""+musicMap.size());
-        DialogFragment newFragment = NewPlaylistDialogFragment.newInstance(musicMap);
-        newFragment.show(getFragmentManager(), "dialog");
-        titleList = sqLiteHelper.selectPlaylistTitle();
+    public LinearLayout getHideLayout() {
+        return hideLayout;
     }
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        try {
-            mCallback = (PlaylistsChangedListener) context;
-        } catch (ClassCastException e) {
+        if (context instanceof ReplaceFrgmentListener) {
+            mCallback = (ReplaceFrgmentListener) context;
+        } else {
             throw new RuntimeException(context.toString()
-                    + " must implement PlaylistChangedListener");
+                    + " must implement ReplaceFrgmentListener");
         }
-    }
-
-    public LinearLayout getSelectingLayout() {
-        return selectingLayout;
-    }
-//    // TODO: Rename method, update argument and hook method into UI event
-//    public void onButtonPressed(Uri uri) {
-//        if (mListener != null) {
-//            mListener.onFragmentInteraction(uri);
-//        }
-//    }
-//
-//
-//
-//    @Override
-//    public void onDetach() {
-//        super.onDetach();
-//        mListener = null;
-//    }
-//
-//    public interface OnFragmentInteractionListener {
-//        // TODO: Update argument type and name
-//        void onFragmentInteraction(Uri uri);
-//    }
-//
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        Log.d("onCreate", "ㅇㅇ");
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-         Log.d("onStart", "ㅇㅇ");
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        Log.d("onResume", "ㅇㅇ");
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-/*        ViewAnimation.dropDwon(selectingLayout);
-        ViewAnimation.riseUp(((MainActivity) getActivity()).getTabLayout());*/
-        Log.d("onPause", "ㅇㅇ");
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        Log.d("onStop", "ㅇㅇ");
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        Log.d("onDestroyView", "ㅇㅇ");
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        Log.d("onDestroy", "ㅇㅇ");
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        Log.d("onDetach", "ㅇㅇ");
+        mCallback = null;
     }
-
-    @Override
-    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
-        super.onViewStateRestored(savedInstanceState);
-        Log.d("onViewStateRestored", "ㅇㅇ");
-    }
-
+//    @OnClick(R.id.home_dayrank_img)
+//    public void onItemClick(View v) {
+//        switch (v.getId()) {
+//            case R.id.home_dayrank_layout:
+//                Log.d("올까", "");
+//                TracksFragment tracksFragment = new TracksFragment();
+//                FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+//                fragmentTransaction.replace(R.id.home_layout, tracksFragment);
+//                fragmentTransaction.addToBackStack(null);
+//                fragmentTransaction.commit();
+//                break;
+//        }
+//    }
 }

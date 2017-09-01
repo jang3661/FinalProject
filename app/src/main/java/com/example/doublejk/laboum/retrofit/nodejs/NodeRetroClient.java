@@ -1,4 +1,4 @@
-package com.example.doublejk.laboum.retrofit;
+package com.example.doublejk.laboum.retrofit.nodejs;
 
 import android.content.Context;
 import android.util.Log;
@@ -6,15 +6,10 @@ import android.util.Log;
 import com.example.doublejk.laboum.model.Playlist;
 import com.example.doublejk.laboum.model.Room;
 import com.example.doublejk.laboum.model.User;
-import com.google.gson.JsonObject;
+import com.example.doublejk.laboum.retrofit.RetroCallback;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 
-import okhttp3.OkHttpClient;
-import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -109,7 +104,29 @@ public class NodeRetroClient {
 
             @Override
             public void onFailure(Call<Playlist> call, Throwable t) {
-                Log.d("deleteRoom", "" + t.toString());
+                Log.d("postEnterRoom", "" + t.toString());
+                callback.onError(t);
+            }
+        });
+    }
+
+    public void postExitRoom(Playlist playlist, final RetroCallback callback) {
+        nodeNetworkService.postExitRoom(playlist).enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                if (response.isSuccessful()) {
+                    Log.d("postExitRoom", "" + response.body().toString());
+                    callback.onSuccess(response.code(), response.body());
+
+                } else {
+                    Log.d("postExitRoom", "Fail" + response.code());
+                    callback.onFailure(response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                Log.d("postExitRoom", "" + t.toString());
                 callback.onError(t);
             }
         });

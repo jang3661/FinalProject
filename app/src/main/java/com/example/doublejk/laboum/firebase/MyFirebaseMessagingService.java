@@ -13,11 +13,10 @@ import android.net.Uri;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
-import com.example.doublejk.laboum.PlayerControlProvider;
-import com.example.doublejk.laboum.PushEvent;
+import com.example.doublejk.laboum.tools.PlayerControlProvider;
+import com.example.doublejk.laboum.tools.PushEvent;
 import com.example.doublejk.laboum.R;
 import com.example.doublejk.laboum.view.MainActivity;
-import com.firebase.jobdispatcher.Constraint;
 import com.firebase.jobdispatcher.FirebaseJobDispatcher;
 import com.firebase.jobdispatcher.GooglePlayDriver;
 import com.firebase.jobdispatcher.Job;

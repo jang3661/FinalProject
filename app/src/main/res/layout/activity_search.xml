@@ -45,7 +45,7 @@
             android:background="#FFF">
 
         <Button
-            android:id="@+id/resetBtn"
+            android:id="@+id/search_resetBtn"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -53,7 +53,7 @@
             android:text="선택해제" />
 
         <Button
-            android:id="@+id/search_resetBtn"
+            android:id="@+id/search_playBtn"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -61,7 +61,7 @@
             android:text="선택재생" />
 
         <Button
-            android:id="@+id/search_playBtn"
+            android:id="@+id/search_saveBtn"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"

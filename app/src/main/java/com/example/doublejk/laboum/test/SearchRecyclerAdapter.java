@@ -1,4 +1,4 @@
-package com.example.doublejk.laboum.duplication;
+package com.example.doublejk.laboum.test;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;

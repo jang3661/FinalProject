@@ -11,16 +11,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.example.doublejk.laboum.RecyclerItemClickListener;
+import com.example.doublejk.laboum.tools.RecyclerItemClickListener;
 import com.example.doublejk.laboum.adapter.MyTabRecyclerAdapter;
-import com.example.doublejk.laboum.model.Music;
 import com.example.doublejk.laboum.model.Playlist;
 import com.example.doublejk.laboum.R;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -105,7 +103,6 @@ public class MyFragment extends Fragment {
         Log.d("안갔냐", "ㅇㅇ" + playlist.getTitle() + playlist.getMusics().size());
         myTabRecyclerAdapter.notifyDataSetChanged();
     }
-
     public void updatePlaylist(Playlist playlist){
         boolean isPlaylist = false;
         for(int i = 0; i < playlists.size(); i++) {

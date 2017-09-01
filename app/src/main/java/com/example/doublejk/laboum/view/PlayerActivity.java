@@ -19,31 +19,28 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.doublejk.laboum.PlayerControlProvider;
-import com.example.doublejk.laboum.PushEvent;
+import com.example.doublejk.laboum.tools.PlayerControlProvider;
+import com.example.doublejk.laboum.tools.PushEvent;
 import com.example.doublejk.laboum.R;
-import com.example.doublejk.laboum.RecyclerItemClickListener;
+import com.example.doublejk.laboum.tools.RecyclerItemClickListener;
 import com.example.doublejk.laboum.adapter.PlayerRecyclerAdapter;
 import com.example.doublejk.laboum.firebase.FirebaseMessage;
 import com.example.doublejk.laboum.model.Music;
 import com.example.doublejk.laboum.model.Playlist;
 import com.example.doublejk.laboum.model.Room;
-import com.example.doublejk.laboum.retrofit.FCMRetroClient;
-import com.example.doublejk.laboum.retrofit.NodeRetroClient;
+import com.example.doublejk.laboum.retrofit.fcm.FCMRetroClient;
+import com.example.doublejk.laboum.retrofit.nodejs.NodeRetroClient;
 import com.example.doublejk.laboum.retrofit.RetroCallback;
 import com.example.doublejk.laboum.util.ColorConverter;
 import com.example.doublejk.laboum.util.DimensionConverter;
-import com.example.doublejk.laboum.util.GlidePalette;
 import com.google.android.youtube.player.YouTubeBaseActivity;
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubePlayer;
 import com.google.android.youtube.player.YouTubePlayerView;
-import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.squareup.otto.Subscribe;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -71,7 +68,7 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
     @BindView(R.id.player_durationTv) TextView durationTv;
     @BindView(R.id.player_playlist_name) TextView playlistName;
     @BindView(R.id.player_user_name) TextView userName;
-    @BindView(R.id.player_seekbar) SeekBar seekBar;
+    private SeekBar seekBar;
     private PlayerRecyclerAdapter playerRecyclerAdapter;
     private ArrayList<Music> musics;
     private YouTubePlayer youTubePlayer;
@@ -92,6 +89,8 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
     private final int ORDINARY_PLAY = 0;
     private final int REPEAT_PLAY = 1;
     private final int ONE_REPEAT_PLAY = 2;
+    private boolean shareMode;
+    private boolean commonUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,32 +103,38 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         initView();
         backGroundColorInit();
 
-        recyclerView.addOnItemTouchListener(new RecyclerItemClickListener(getApplicationContext(),
-                recyclerView, new RecyclerItemClickListener.OnItemClickListener() {
-            @Override
-            public void onItemClick(View view, int position) {
-                if(isMaster) {
-                    Log.d("북", "ㅇㅇ");
-                    postGroupMsg(new FirebaseMessage("/topics/"+playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')), "itemClick", position, 0));
+            recyclerView.addOnItemTouchListener(new RecyclerItemClickListener(getApplicationContext(),
+                    recyclerView, new RecyclerItemClickListener.OnItemClickListener() {
+                @Override
+                public void onItemClick(View view, int position) {
+                    if(isMaster || commonUser) {
+                        if (isMaster) {
+                            Log.d("북", "ㅇㅇ");
+                            postGroupMsg(new FirebaseMessage("/topics/" + playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')), "itemClick", position, 0));
+                        }
+                        doTouchPlayer = true;
+                        youTubePlayer.loadVideos(videoIds, position, 0);
+                        updateData(position);
+                    }
                 }
-                doTouchPlayer = true;
-                youTubePlayer.loadVideos(videoIds, position, 0);
-                updateData(position);
-            }
 
-            @Override
-            public void onLongItemClick(View view, int position) { }
-        }));
+                @Override
+                public void onLongItemClick(View view, int position) {
+                }
+            }));
     }
 
     public void initView() {
+        seekBar = (SeekBar) findViewById(R.id.player_seekbar);
+        seekBar.setOnSeekBarChangeListener(this);
+
+
         nodeRetroClient = NodeRetroClient.getInstance(this).createBaseApi();
         fcmRetroClient = FCMRetroClient.getInstance(this).createBaseApi();
 
         myPlaybackEventListener = new MyPlaybackEventListener();
         myPlayerStateChangeListener = new MyPlayerStateChangeListener();
         myPlaylistEventListener = new MyPlaylistEventListener();
-        seekBar.setOnSeekBarChangeListener(this);
 
         playerRecyclerAdapter = new PlayerRecyclerAdapter(this, musics);
         playerRecyclerAdapter.setPlayingMusicPostion(playingPos); //현재 재생중인 노래 index
@@ -137,7 +142,6 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         recyclerView.setAdapter(playerRecyclerAdapter);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
 
-        timer = new Timer();
         youTubePlayerView.initialize(YOUTUBE_KEY, this);
     }
     public void postGroupMsg(FirebaseMessage firebaseMessage) {
@@ -157,8 +161,27 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         });
     }
 
+    public void postExitRoom() {
+        nodeRetroClient.postExitRoom(playlist, new RetroCallback() {
+            @Override
+            public void onError(Throwable t) {
+                Log.e("", t.toString());
+            }
+
+            @Override
+            public void onSuccess(int code, Object receivedData) {
+                Log.d("onSuccess", "" + code);
+            }
+
+            @Override
+            public void onFailure(int code) {
+                Log.d("onFailure", "" + code);
+            }
+        });
+    }
     @Subscribe
     public void playerControl(PushEvent mPushEvent) {
+        shareMode = false;
         switch (mPushEvent.getPushData().get("action")) {
             case "next":
                 onPlayerClick(nextBtn);
@@ -171,6 +194,9 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
                 break;
             case "fullscreen":
                 onPlayerClick(fullSreenBtn);
+                break;
+            case "normalscreen":
+                youTubePlayer.setFullscreen(false);
                 break;
             case "random":
                 onPlayerClick(randomBtn);
@@ -190,13 +216,21 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
                 updateData(position);
                 break;
             case "playlistInfo":
-                Log.d("버스2", "" + playerRecyclerAdapter.getPlayingMusicPostion() + " " + youTubePlayer.getCurrentTimeMillis() + " " + youTubePlayer.getDurationMillis());
-                postGroupMsg(new FirebaseMessage(mPushEvent.getPushData().get("token"), "reply", playerRecyclerAdapter.getPlayingMusicPostion(), youTubePlayer.getCurrentTimeMillis()));
+                Log.d("버스2", "" + playerRecyclerAdapter.getPlayingMusicPostion() + " " + youTubePlayer.getCurrentTimeMillis());
+                postGroupMsg(new FirebaseMessage(mPushEvent.getPushData().get("token"), "reply", playerRecyclerAdapter.getPlayingMusicPostion(), youTubePlayer.getCurrentTimeMillis() + 1000 ));
                 break;
             case "end":
+                Toast.makeText(this, "공유가 해제되었습니다.", Toast.LENGTH_SHORT).show();
+                shareMode = false;
+                commonUser = true;
                 FirebaseMessaging.getInstance().unsubscribeFromTopic(playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')));
                 break;
         }
+        if(!commonUser) {
+            Log.d("이유가머야", "ㅇ");
+            shareMode = true;
+        }
+        Log.d("쇠어", "" + shareMode);
     }
 
     @Override
@@ -222,6 +256,15 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
     @Override
     protected void onStop() {
         super.onStop();
+        if(!isMaster) {
+            postExitRoom();
+        } else {
+            postDeleteRoom(myRoom);
+            postGroupMsg(new FirebaseMessage(playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')), "end"));
+            isClickedShareBtn = false;
+            isMaster = false;
+            commonUser = true;
+        }
         SharedPreferences sf = getSharedPreferences("pref", 0);
         SharedPreferences.Editor editor = sf.edit();
         editor.putInt("stateFlag", stateFlag);
@@ -280,9 +323,14 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
     }
 
     public void receiveMusicList() {
+        shareMode = getIntent().getBooleanExtra("mode", false);
+        if(shareMode) {
+            commonUser = false;
+        }else {
+            commonUser = true;
+        }
         playingCurrentMillis = getIntent().getIntExtra("currentMillis", 0);
         playingPos = getIntent().getIntExtra("playingPos", 0);
-        Log.d("머야!!", "" + playingCurrentMillis + " " + playingPos);
         playlist = getIntent().getParcelableExtra("playlist");
         musics = playlist.getMusics();
         videoIds = new ArrayList<>();
@@ -300,7 +348,7 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
 
-        //window.setStatusBarColor(darkColor);
+        window.setStatusBarColor(darkColor);
         controllerLayout.setBackgroundColor(darkColor);
         infoLayout.setBackgroundColor(darkColor);
         playerLayout.setBackgroundColor(color);
@@ -332,7 +380,7 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         playerRecyclerAdapter.setPlayingMusicPostion(position);
         playerRecyclerAdapter.notifyDataSetChanged();
 
-        //window.setStatusBarColor(darkColor);
+        window.setStatusBarColor(darkColor);
         controllerLayout.setBackgroundColor(darkColor);
         infoLayout.setBackgroundColor(darkColor);
         playerLayout.setBackgroundColor(color);
@@ -356,6 +404,7 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         youTubePlayer.setOnFullscreenListener(this);
         //youTubePlayer.setFullscreenControlFlags(youTubePlayer.FULLSCREEN_FLAG_CONTROL_SYSTEM_UI);
 
+        timer = new Timer();
         youTubePlayer.loadVideos(videoIds, playingPos, playingCurrentMillis);
     }
     public void showLog(String s) {
@@ -371,152 +420,168 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         Log.d("onFullscreen", "" + b);
         if(!b) {
             youTubePlayer.setPlayerStyle(YouTubePlayer.PlayerStyle.CHROMELESS);
+            if(isMaster) {
+                postGroupMsg(new FirebaseMessage(playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')), "normalscreen"));
+            }
         }
     }
 
     @OnClick({R.id.player_playBtn, R.id.player_nextBtn, R.id.player_previousBtn,
             R.id.player_fullscreenBtn, R.id.player_repeatBtn, R.id.player_randomBtn, R.id.player_sharebtn})
     public void onPlayerClick(View v) {
-        switch (v.getId()) {
-            case R.id.player_playBtn:
-                if(isMaster) {
-                   postGroupMsg(new FirebaseMessage(playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')), "play"));
-                }
-                if(youTubePlayer.isPlaying()) {
-                    playBtn.setImageResource(R.drawable.playbtn);
-                    youTubePlayer.pause();
-                }else {
-                    playBtn.setImageResource(R.drawable.pausebtn);
-                    youTubePlayer.play();
-                }
-                break;
-            case R.id.player_nextBtn:
-                if(isMaster) {
-                    postGroupMsg(new FirebaseMessage(playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')), "next"));
-                }
-                doTouchPlayer = true;
-                if(playerRecyclerAdapter.getPlayingMusicPostion() < videoIds.size() -1) {
-                    updateData(playerRecyclerAdapter.getPlayingMusicPostion() +1);
-                    youTubePlayer.loadVideos(videoIds, playerRecyclerAdapter.getPlayingMusicPostion(), 0);
-                }else {
-                    updateData(0);
-                    youTubePlayer .loadVideos(videoIds, 0, 0);
-                }
-                break;
-            case R.id.player_previousBtn:
-                if(isMaster) {
-                    postGroupMsg(new FirebaseMessage(playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')), "previous"));
-                }
-                doTouchPlayer = true;
-                if(playerRecyclerAdapter.getPlayingMusicPostion() > 0) {
-                    updateData(playerRecyclerAdapter.getPlayingMusicPostion() -1);
-                    youTubePlayer.loadVideos(videoIds, playerRecyclerAdapter.getPlayingMusicPostion(), 0);
-                }else {
-                    updateData(videoIds.size() -1);
-                    youTubePlayer.loadVideos(videoIds, playerRecyclerAdapter.getPlayingMusicPostion(), 0);
-                }
-                break;
-            case R.id.player_fullscreenBtn:
-                if(isMaster) {
-                    postGroupMsg(new FirebaseMessage(playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')), "fullscreen"));
-                }
-                youTubePlayer.setPlayerStyle(YouTubePlayer.PlayerStyle.DEFAULT);
-                youTubePlayer.setFullscreen(true);
-                break;
-            case R.id.player_repeatBtn:
-                if(isMaster) {
-                    postGroupMsg(new FirebaseMessage(playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')), "repeat"));
-                }
-                if(stateFlag == ORDINARY_PLAY) {
-                    stateFlag = REPEAT_PLAY;
-                    repeatBtn.setImageResource(R.drawable.repeatbtn);
-                }else if(stateFlag == REPEAT_PLAY) {
-                    stateFlag = ONE_REPEAT_PLAY;
-                    repeatBtn.setImageResource(R.drawable.onerepeatbtn);
-                }else {
-                    stateFlag = ORDINARY_PLAY;
-                    repeatBtn.setImageResource(R.drawable.unrepeatbtn);
-                }
-                break;
-            case R.id.player_randomBtn:
-                if(isMaster) {
-                    postGroupMsg(new FirebaseMessage(playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')), "random"));
-                }
-                if(isClickedRandomBtn) {
-                    randomBtn.setImageResource(R.drawable.unrandombtn);
-                    isClickedRandomBtn = false;
-                }else {
-                    randomBtn.setImageResource(R.drawable.randombtn);
-                    isClickedRandomBtn = true;
-                }
-                break;
-            case R.id.player_sharebtn:
-                if(!isClickedShareBtn) {
-                    final EditText roomName = new EditText(this);
-                    LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                            LinearLayout.LayoutParams.MATCH_PARENT,
-                            LinearLayout.LayoutParams.WRAP_CONTENT);
-                    roomName.setLayoutParams(lp);
+        Log.d("쇠어", "" + shareMode);
+        if(!shareMode) {
+            if(!isMaster && !commonUser) {
+                Log.d("공유된 유저", "ㅇ");
+                shareMode = true;
+            }
+            switch (v.getId()) {
+                case R.id.player_playBtn:
+                    if (isMaster) {
+                        postGroupMsg(new FirebaseMessage(playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')), "play"));
+                    }
+                    if (youTubePlayer.isPlaying()) {
+                        playBtn.setImageResource(R.drawable.playbtn);
+                        youTubePlayer.pause();
+                    } else {
+                        playBtn.setImageResource(R.drawable.pausebtn);
+                        youTubePlayer.play();
+                    }
+                    break;
+                case R.id.player_nextBtn:
+                    if (isMaster) {
+                        postGroupMsg(new FirebaseMessage(playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')), "next"));
+                    }
+                    doTouchPlayer = true;
+                    if (playerRecyclerAdapter.getPlayingMusicPostion() < videoIds.size() - 1) {
+                        updateData(playerRecyclerAdapter.getPlayingMusicPostion() + 1);
+                        youTubePlayer.loadVideos(videoIds, playerRecyclerAdapter.getPlayingMusicPostion(), 0);
+                    } else {
+                        updateData(0);
+                        youTubePlayer.loadVideos(videoIds, 0, 0);
+                    }
+                    break;
+                case R.id.player_previousBtn:
+                    if (isMaster) {
+                        postGroupMsg(new FirebaseMessage(playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')), "previous"));
+                    }
+                    doTouchPlayer = true;
+                    if (playerRecyclerAdapter.getPlayingMusicPostion() > 0) {
+                        updateData(playerRecyclerAdapter.getPlayingMusicPostion() - 1);
+                        youTubePlayer.loadVideos(videoIds, playerRecyclerAdapter.getPlayingMusicPostion(), 0);
+                    } else {
+                        updateData(videoIds.size() - 1);
+                        youTubePlayer.loadVideos(videoIds, playerRecyclerAdapter.getPlayingMusicPostion(), 0);
+                    }
+                    break;
+                case R.id.player_fullscreenBtn:
+                    if (isMaster) {
+                        postGroupMsg(new FirebaseMessage(playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')), "fullscreen"));
+                    }
+                    youTubePlayer.setPlayerStyle(YouTubePlayer.PlayerStyle.DEFAULT);
+                    youTubePlayer.setFullscreen(true);
+                    break;
+                case R.id.player_repeatBtn:
+                    if (isMaster) {
+                        postGroupMsg(new FirebaseMessage(playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')), "repeat"));
+                    }
+                    if (stateFlag == ORDINARY_PLAY) {
+                        stateFlag = REPEAT_PLAY;
+                        repeatBtn.setImageResource(R.drawable.repeatbtn);
+                    } else if (stateFlag == REPEAT_PLAY) {
+                        stateFlag = ONE_REPEAT_PLAY;
+                        repeatBtn.setImageResource(R.drawable.onerepeatbtn);
+                    } else {
+                        stateFlag = ORDINARY_PLAY;
+                        repeatBtn.setImageResource(R.drawable.unrepeatbtn);
+                    }
+                    break;
+                case R.id.player_randomBtn:
+                    if (isMaster) {
+                        postGroupMsg(new FirebaseMessage(playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')), "random"));
+                    }
+                    if (isClickedRandomBtn) {
+                        randomBtn.setImageResource(R.drawable.unrandombtn);
+                        isClickedRandomBtn = false;
+                    } else {
+                        randomBtn.setImageResource(R.drawable.randombtn);
+                        isClickedRandomBtn = true;
+                    }
+                    break;
+                case R.id.player_sharebtn:
+                    if (!isClickedShareBtn) {
+                        final EditText roomName = new EditText(this);
+                        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                                LinearLayout.LayoutParams.MATCH_PARENT,
+                                LinearLayout.LayoutParams.WRAP_CONTENT);
+                        roomName.setLayoutParams(lp);
 
-                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                    builder.setTitle("재생목록을 공유하시겠습니까?")
-                            // Add action buttons
-                            .setView(roomName)
-                            .setPositiveButton("확인", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int id) {
-                                    myRoom = new Room(roomName.getText().toString(), playlist.getUserEmail(), playlist.getUserName(), playlist.getTitle());
-                                    myRoom.setPlaylist(playlist);
-                                    postCreateRoom(myRoom);
-                                    isClickedShareBtn = true;
-                                    isMaster = true;
-                                    Toast.makeText(getApplicationContext(), "방을 공유하였습니다.", Toast.LENGTH_SHORT).show();
-                                }
-                            })
-                            .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int id) {
-                                    dialog.cancel();
-                                }
-                            });
-                    AlertDialog alertDialog = builder.create();
-                    alertDialog.show();
-                    //어차피 현재상태에서 방목록 못본다.
-                }else {
-                    postDeleteRoom(myRoom);
-                    postGroupMsg(new FirebaseMessage(playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')), "end"));
-                    isClickedShareBtn = false;
-                    isMaster = false;
-                    Toast.makeText(getApplicationContext(), "공유를 해제하였습니다.", Toast.LENGTH_SHORT).show();
-                }
-                break;
+                        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                        builder.setTitle("재생목록을 공유하시겠습니까?")
+                                // Add action buttons
+                                .setView(roomName)
+                                .setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        myRoom = new Room(roomName.getText().toString(), playlist.getUserEmail(),
+                                                playlist.getUserName(), playlist.getTitle(), playlist.getMusics().get(0).getImgUrl());
+                                        Log.d("이미지", "" + playlist.getMusics().get(0).getImgUrl());
+                                        myRoom.setPlaylist(playlist);
+                                        postCreateRoom(myRoom);
+                                        isClickedShareBtn = true;
+                                        isMaster = true;
+                                        Toast.makeText(getApplicationContext(), "방을 공유하였습니다.", Toast.LENGTH_SHORT).show();
+                                    }
+                                })
+                                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        dialog.cancel();
+                                    }
+                                });
+                        AlertDialog alertDialog = builder.create();
+                        alertDialog.show();
+                        //어차피 현재상태에서 방목록 못본다.
+                    } else {
+                        postDeleteRoom(myRoom);
+                        postGroupMsg(new FirebaseMessage(playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')), "end"));
+                        isClickedShareBtn = false;
+                        commonUser = true;
+                        isMaster = false;
+                        Toast.makeText(getApplicationContext(), "공유를 해제하였습니다.", Toast.LENGTH_SHORT).show();
+                    }
+                    break;
+            }
         }
     }
 
 
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-        if(fromUser) {
-            currentTimeTv.setText(convertTime(progress));
-        }
+            if (fromUser) {
+                currentTimeTv.setText(convertTime(progress));
+                Log.d("타임", "onProgress");
+            }
     }
 
     @Override
     public void onStartTrackingTouch(SeekBar seekBar) {
-        if(timerTask != null) {
-            timerTask.cancel();
-        }
+            if (timerTask != null) {
+                Log.d("타임", "onStart");
+                timerTask.cancel();
+            }
     }
 
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
-        if(isMaster) {
-            postGroupMsg(new FirebaseMessage("/topics/" + playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')), "seekbar", 0, seekBar.getProgress()));
-        }
-        isPlayStarted = true;
-        doTouchPlayer = false;
-        youTubePlayer.loadVideos(videoIds, playerRecyclerAdapter.getPlayingMusicPostion(), seekBar.getProgress());
-/*        timerTask = timerTaskMaker();
-        timer.schedule(timerTask, 500, 300);*/
+            if (isMaster) {
+                postGroupMsg(new FirebaseMessage("/topics/" + playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')), "seekbar", 0, seekBar.getProgress()));
+            }
+            Log.d("타임", "onStop");
+            isPlayStarted = true;
+            doTouchPlayer = false;
+            youTubePlayer.loadVideos(videoIds, playerRecyclerAdapter.getPlayingMusicPostion(), seekBar.getProgress());
+    /*        timerTask = timerTaskMaker();
+            timer.schedule(timerTask, 500, 300);*/
 }
 
     public void postCreateRoom(Room room) {
@@ -566,8 +631,9 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
             seekBar.setMax(youTubePlayer.getDurationMillis());
             durationTv.setText(convertTime(youTubePlayer.getDurationMillis()));
             if(isPlayStarted) {
+                Log.d("타임", "onPlaying");
                 timerTask = timerTaskMaker();
-                timer.schedule(timerTask, 500, 300);
+                timer.schedule(timerTask, 700, 300);
                 isPlayStarted = false;
             } else {
                 timerTask = timerTaskMaker();

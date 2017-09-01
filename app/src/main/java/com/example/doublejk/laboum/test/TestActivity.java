@@ -1,4 +1,4 @@
-package com.example.doublejk.laboum.duplication;
+package com.example.doublejk.laboum.test;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;

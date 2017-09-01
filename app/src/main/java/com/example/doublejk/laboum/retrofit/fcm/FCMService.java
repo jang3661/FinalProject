@@ -1,6 +1,6 @@
-package com.example.doublejk.laboum.retrofit;
+package com.example.doublejk.laboum.retrofit.fcm;
 
-import com.example.doublejk.laboum.ServerKey;
+import com.example.doublejk.laboum.tools.ServerKey;
 import com.example.doublejk.laboum.firebase.FirebaseMessage;
 import com.google.gson.JsonObject;
 
@@ -19,7 +19,7 @@ public interface FCMService {
 
     @Headers({
             "Content-Type:application/json",
-            "Authorization:key=" + ServerKey.key
+            "Authorization:key=" + ServerKey.FirebaseKey
     })
     @POST("send")
     Call<JsonObject> postGroupMsg(@Body FirebaseMessage firebaseMessage);

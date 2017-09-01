@@ -1,4 +1,4 @@
-package com.example.doublejk.laboum.retrofit;
+package com.example.doublejk.laboum.retrofit.youtube;
 
 import com.google.gson.JsonObject;
 
@@ -47,23 +47,23 @@ public interface YoutubeApiService {
     @GET("login")
     Call<String> getTest();
 
-    @GET("/posts/{userId}")
-    Call<ResponseGet> getFirst(@Path("userId") String id);
-
-    @GET("/posts")
-    Call<List<ResponseGet>> getSecond(@Query("userId") String id);
-
-    @FormUrlEncoded
-    @POST("/posts")
-    Call<ResponseGet> postFirst(@FieldMap HashMap<String, Object> parameters);
-
-    @PUT("/posts/1")
-    Call<ResponseGet> putFirst(@Body RequestPut parameters);
-
-    @FormUrlEncoded
-    @PATCH("/posts/1")
-    Call<ResponseGet> patchFirst(@Field("title") String title);
-
-    @DELETE("/posts/1")
-    Call<ResponseBody> deleteFirst();
+//    @GET("/posts/{userId}")
+//    Call<ResponseGet> getFirst(@Path("userId") String id);
+//
+//    @GET("/posts")
+//    Call<List<ResponseGet>> getSecond(@Query("userId") String id);
+//
+//    @FormUrlEncoded
+//    @POST("/posts")
+//    Call<ResponseGet> postFirst(@FieldMap HashMap<String, Object> parameters);
+//
+//    @PUT("/posts/1")
+//    Call<ResponseGet> putFirst(@Body RequestPut parameters);
+//
+//    @FormUrlEncoded
+//    @PATCH("/posts/1")
+//    Call<ResponseGet> patchFirst(@Field("title") String title);
+//
+//    @DELETE("/posts/1")
+//    Call<ResponseBody> deleteFirst();
 }

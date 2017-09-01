@@ -1,8 +1,6 @@
 package com.example.doublejk.laboum.view;
 
-import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -14,17 +12,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.example.doublejk.laboum.PlayerControlProvider;
-import com.example.doublejk.laboum.PushEvent;
+import com.example.doublejk.laboum.tools.PlayerControlProvider;
+import com.example.doublejk.laboum.tools.PushEvent;
 import com.example.doublejk.laboum.R;
-import com.example.doublejk.laboum.RecyclerItemClickListener;
-import com.example.doublejk.laboum.adapter.MyTabRecyclerAdapter;
+import com.example.doublejk.laboum.tools.RecyclerItemClickListener;
 import com.example.doublejk.laboum.adapter.ShareRecyclerAdpter;
 import com.example.doublejk.laboum.firebase.FirebaseMessage;
 import com.example.doublejk.laboum.model.Playlist;
 import com.example.doublejk.laboum.model.Room;
-import com.example.doublejk.laboum.retrofit.FCMRetroClient;
-import com.example.doublejk.laboum.retrofit.NodeRetroClient;
+import com.example.doublejk.laboum.retrofit.fcm.FCMRetroClient;
+import com.example.doublejk.laboum.retrofit.nodejs.NodeRetroClient;
 import com.example.doublejk.laboum.retrofit.RetroCallback;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.messaging.FirebaseMessaging;
@@ -110,6 +107,7 @@ public class ShareFragment extends Fragment {
             intent.putExtra("playlist", playlist);
             intent.putExtra("playingPos", Integer.valueOf(mPushEvent.getPushData().get("playingMusicIndex")));
             intent.putExtra("currentMillis", Integer.valueOf(mPushEvent.getPushData().get("currentMillis")));
+            intent.putExtra("mode", true);
             startActivity(intent);
         }
     }

@@ -57,6 +57,38 @@ public class JsonParsing {
         return musics;
     }
 
+    public ArrayList<Music> popularTracks() {
+        JsonArray jsonArray = jsonObject.getAsJsonArray("items");
+        for (int i = 0; i < jsonArray.size(); i++) {
+            Music music = new Music();
+            String title = subString(jsonArray.get(i).getAsJsonObject().get("snippet")
+                            .getAsJsonObject().get("title").toString());
+            if(title.equals("Private video")) {
+                continue;
+            }
+            music.setTitle(title);
+            music.setImgUrl(subString(jsonArray.get(i).getAsJsonObject().get("snippet")
+                    .getAsJsonObject().get("thumbnails").getAsJsonObject().get("medium")
+                    .getAsJsonObject().get("url").toString()));
+            music.setVideoId(subString(jsonArray.get(i).getAsJsonObject().get("snippet")
+            .getAsJsonObject().get("resourceId").getAsJsonObject().get("videoId").toString()));
+            music.setTitle(music.getTitle().replaceAll("\'", ""));
+            musics.add(music);
+        }
+        return musics;
+    }
+
+
+    public String homeBanner() {
+        String banner;
+        JsonArray jsonArray = jsonObject.getAsJsonArray("items");
+        banner = subString(jsonArray.get(0).getAsJsonObject().get("snippet")
+                .getAsJsonObject().get("thumbnails").getAsJsonObject().get("medium")
+                .getAsJsonObject().get("url").toString());
+
+        return banner;
+    }
+
     public String subString(String s) {
         return s.substring(1, s.length() - 1);
     }

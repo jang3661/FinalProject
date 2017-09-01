@@ -1,15 +1,13 @@
-package com.example.doublejk.laboum.retrofit;
+package com.example.doublejk.laboum.retrofit.youtube;
 
 
 import android.content.Context;
 import android.util.Log;
 
+import com.example.doublejk.laboum.retrofit.JsonParsing;
+import com.example.doublejk.laboum.retrofit.RetroCallback;
 import com.google.gson.JsonObject;
 
-import java.util.HashMap;
-import java.util.List;
-
-import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -84,16 +82,20 @@ public class YoutubeRetroClient {
         });
     }
 
-    public void getPopularTrack(String id, String key, int maxResults, final RetroCallback callback) {
+    public void getPopularTrack(String id, String key, final int maxResults, final RetroCallback callback) {
         youtubeApiService.getPopularTrack(id, key, maxResults).enqueue(new Callback<JsonObject>() {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
                 if (response.isSuccessful()) {
-                    Log.d("aaaa", "" + response.body().toString());
-                    callback.onSuccess(response.code(), new JsonParsing(response.body()).popularSearchParsing());
+                    Log.d("getPopularTrack", "" + response.body().toString());
+                    if(maxResults == 1) {
+                        callback.onSuccess(response.code(), new JsonParsing(response.body()).homeBanner());
+                    }else {
+                        callback.onSuccess(response.code(), new JsonParsing(response.body()).popularTracks());
+                    }
 
                 } else {
-                    Log.d("aaaa", "Fail");
+                    Log.d("getPopularTrack", "Fail");
                     callback.onFailure(response.code());
                 }
             }
@@ -111,18 +113,17 @@ public class YoutubeRetroClient {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
                 if (response.isSuccessful()) {
-                    //Log.d("aaaa", "" + response.body().toString());
                     callback.onSuccess(response.code(), new JsonParsing(response.body()).popularSearchParsing());
 
                 } else {
-                    Log.d("aaaa", "Fail");
+                    Log.d("getPopularSearch", "Fail");
                     callback.onFailure(response.code());
                 }
             }
 
             @Override
             public void onFailure(Call<JsonObject> call, Throwable t) {
-                Log.d("aaaa", "Fail");
+                Log.d("getPopularSearch", "Fail");
                 callback.onError(t);
             }
         });
@@ -137,7 +138,7 @@ public class YoutubeRetroClient {
                     callback.onSuccess(response.code(), response.body());
 
                 } else {
-                    Log.d("aaaa", "Fail" + response.code());
+                    Log.d("getActivities", "Fail" + response.code());
                     callback.onFailure(response.code());
                 }
             }
@@ -155,128 +156,20 @@ public class YoutubeRetroClient {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
                 if (response.isSuccessful()) {
-                    //Log.d("aaaa", "" + response.body().toString());
                     callback.onSuccess(response.code(), new JsonParsing(response.body()).parsing());
 
                 } else {
-                    Log.d("aaaa", "Fail");
+                    Log.d("getSearch", "Fail");
                     callback.onFailure(response.code());
                 }
             }
 
             @Override
             public void onFailure(Call<JsonObject> call, Throwable t) {
-                Log.d("aaaa", "Fail");
-                callback.onError(t);
-            }
-        });
-    }
-    public void getFirst(String id, final RetroCallback callback) {
-        youtubeApiService.getFirst(id).enqueue(new Callback<ResponseGet>() {
-            @Override
-            public void onResponse(Call<ResponseGet> call, Response<ResponseGet> response) {
-                if (response.isSuccessful()) {
-                    //Log.d("aaaa", response.body().toString());
-                    callback.onSuccess(response.code(), response.body());
-                } else {
-                    callback.onFailure(response.code());
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ResponseGet> call, Throwable t) {
+                Log.d("getSearch", "Fail");
                 callback.onError(t);
             }
         });
     }
 
-    public void getSecond(String id, final RetroCallback callback) {
-        youtubeApiService.getSecond(id).enqueue(new Callback<List<ResponseGet>>() {
-            @Override
-            public void onResponse(Call<List<ResponseGet>> call, Response<List<ResponseGet>> response) {
-                if (response.isSuccessful()) {
-                    callback.onSuccess(response.code(), response.body());
-                } else {
-                    callback.onFailure(response.code());
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<ResponseGet>> call, Throwable t) {
-                callback.onError(t);
-            }
-        });
-    }
-
-    public void postFirst(HashMap<String, Object> parameters, final RetroCallback callback) {
-        youtubeApiService.postFirst(parameters).enqueue(new Callback<ResponseGet>() {
-            @Override
-            public void onResponse(Call<ResponseGet> call, Response<ResponseGet> response) {
-                if (response.isSuccessful()) {
-                    callback.onSuccess(response.code(), response.body());
-                } else {
-                    callback.onFailure(response.code());
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ResponseGet> call, Throwable t) {
-                callback.onError(t);
-            }
-        });
-    }
-
-    public void putFirst(HashMap<String, Object> parameters, final RetroCallback callback) {
-        youtubeApiService.putFirst(new RequestPut(parameters)).enqueue(new Callback<ResponseGet>() {
-            @Override
-            public void onResponse(Call<ResponseGet> call, Response<ResponseGet> response) {
-                if (response.isSuccessful()) {
-                    callback.onSuccess(response.code(), response.body());
-                } else {
-                    callback.onFailure(response.code());
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ResponseGet> call, Throwable t) {
-                callback.onError(t);
-            }
-        });
-    }
-
-    public void patchFirst(String title, final RetroCallback callback) {
-        youtubeApiService.patchFirst(title).enqueue(new Callback<ResponseGet>() {
-            @Override
-            public void onResponse(Call<ResponseGet> call, Response<ResponseGet> response) {
-                if (response.isSuccessful()) {
-                    callback.onSuccess(response.code(), response.body());
-                } else {
-                    callback.onFailure(response.code());
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ResponseGet> call, Throwable t) {
-                callback.onError(t);
-            }
-        });
-    }
-
-    public void deleteFirst(final RetroCallback callback) {
-        youtubeApiService.deleteFirst().enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                if (response.isSuccessful()) {
-                    callback.onSuccess(response.code(), response.body());
-                } else {
-                    callback.onFailure(response.code());
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-                callback.onError(t);
-            }
-        });
-    }
 }

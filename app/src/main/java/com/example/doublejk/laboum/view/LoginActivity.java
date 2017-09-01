@@ -2,8 +2,6 @@ package com.example.doublejk.laboum.view;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.sqlite.SQLiteDatabase;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -12,18 +10,15 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.doublejk.laboum.NowPlayingPlaylist;
-import com.example.doublejk.laboum.Oauth;
-import com.example.doublejk.laboum.PlaylistSharedPreferences;
+import com.example.doublejk.laboum.tools.NowPlayingPlaylist;
+import com.example.doublejk.laboum.model.Oauth;
 import com.example.doublejk.laboum.R;
-import com.example.doublejk.laboum.SQLiteHelper;
+import com.example.doublejk.laboum.sqlite.SQLiteHelper;
 import com.example.doublejk.laboum.model.AccessToken;
-import com.example.doublejk.laboum.model.MyPlaylist;
 import com.example.doublejk.laboum.model.Playlist;
 import com.example.doublejk.laboum.model.User;
-import com.example.doublejk.laboum.retrofit.NodeRetroClient;
-import com.example.doublejk.laboum.retrofit.OauthRetroClient;
-import com.example.doublejk.laboum.retrofit.OauthService;
+import com.example.doublejk.laboum.retrofit.nodejs.NodeRetroClient;
+import com.example.doublejk.laboum.retrofit.nodejs.OauthRetroClient;
 import com.example.doublejk.laboum.retrofit.RetroCallback;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -42,7 +37,6 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
-import com.google.firebase.messaging.FirebaseMessaging;
 
 
 public class LoginActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener,
@@ -74,8 +68,8 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         oauthRetroClient = OauthRetroClient.getInstance(this).createBaseApi();
 
         signInButton = (SignInButton) findViewById(R.id.sign_in_button);
-        findViewById(R.id.sign_out_button).setOnClickListener(this);
-        findViewById(R.id.disconnect_button).setOnClickListener(this);
+//        findViewById(R.id.sign_out_button).setOnClickListener(this);
+//        findViewById(R.id.disconnect_button).setOnClickListener(this);
 
         signInButton.setOnClickListener(this);
 
@@ -278,12 +272,12 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         int i = v.getId();
         if (i == R.id.sign_in_button) {
             signIn();
-        } else if (i == R.id.sign_out_button) {
+        }/* else if (i == R.id.sign_out_button) {
 
             signOut();
         } else if (i == R.id.disconnect_button) {
             revokeAccess();
-        }
+        }*/
 
 
 

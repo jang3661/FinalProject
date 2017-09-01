@@ -9,5 +9,6 @@
     <color name="mainTabColor">#FFF</color>
     <color name="mainTabTextColor">#FF3469</color>
     <color name="mainTextColor">#DDDDDD</color>
+    <color name="homeTextColer">#FFF</color>
     <!--<color name="mainItemClickedColor">#FFF</color>-->
 </resources>

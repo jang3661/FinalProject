@@ -1,4 +1,4 @@
-package com.example.doublejk.laboum;
+package com.example.doublejk.laboum.tools;
 
 import com.example.doublejk.laboum.model.Music;
 

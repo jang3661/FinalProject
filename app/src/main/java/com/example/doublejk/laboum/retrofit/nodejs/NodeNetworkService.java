@@ -1,4 +1,4 @@
-package com.example.doublejk.laboum.retrofit;
+package com.example.doublejk.laboum.retrofit.nodejs;
 
 import com.example.doublejk.laboum.model.Playlist;
 import com.example.doublejk.laboum.model.Room;
@@ -28,8 +28,9 @@ import retrofit2.http.Query;
  */
 
 public interface NodeNetworkService {
-    final String  Base_URL = "http://192.168.10.102:3000/";
+    //final String Base_URL = "http://192.168.10.102:3000/";
     //final String  Base_URL = "http://1b1e6b75.ngrok.io/";
+    final String Base_URL = "http://e9c29e20.ngrok.io";
 
 
     @POST("login")
@@ -50,39 +51,6 @@ public interface NodeNetworkService {
     @POST("room/enter")
     Call<Playlist> postEnterRoom(@Body Room room);
 
-
-
-
-
-
-
-    @GET("videos?part=snippet&chart=mostPopular&regionCode=KR&videoCategoryId=10")
-    Call<JsonObject> getPopularSearch(@Query("key") String key, @Query("maxResults") int maxResults);
-
-    @GET("activities?part=snippet&home=true")
-    Call<JsonObject> getActivities(@Query("maxResults") int maxResults);
-
-    @GET("login")
-    Call<String> getTest();
-
-
-    @GET("/posts/{userId}")
-    Call<ResponseGet> getFirst(@Path("userId") String id);
-
-    @GET("/posts")
-    Call<List<ResponseGet>> getSecond(@Query("userId") String id);
-
-    @FormUrlEncoded
-    @POST("/posts")
-    Call<ResponseGet> postFirst(@FieldMap HashMap<String, Object> parameters);
-
-    @PUT("/posts/1")
-    Call<ResponseGet> putFirst(@Body RequestPut parameters);
-
-    @FormUrlEncoded
-    @PATCH("/posts/1")
-    Call<ResponseGet> patchFirst(@Field("title") String title);
-
-    @DELETE("/posts/1")
-    Call<ResponseBody> deleteFirst();
+    @POST("room/exit")
+    Call<String> postExitRoom(@Body Playlist playlist);
 }

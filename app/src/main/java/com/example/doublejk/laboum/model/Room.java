@@ -18,15 +18,18 @@ public class Room {
     private String playlistName;
     @SerializedName("listenercount")
     private int listenerCount;
+    @SerializedName("thumbnail")
+    private String thumbnail;
     @SerializedName("playlist")
     @Expose
     private Playlist playlist;
 
-    public Room(String title, String userEmail, String userName, String playlistName) {
+    public Room(String title, String userEmail, String userName, String playlistName, String thumbnail) {
         this.title = title;
         this.userEmail = userEmail;
         this.userName = userName;
         this.playlistName = playlistName;
+        this.thumbnail = thumbnail;
         this.listenerCount = 1;
         this.playlist = new Playlist(playlistName, userEmail, userName);
     }
@@ -77,5 +80,13 @@ public class Room {
 
     public void setPlaylist(Playlist playlist) {
         this.playlist = playlist;
+    }
+
+    public String getThumbnail() {
+        return thumbnail;
+    }
+
+    public void setThumbnail(String thumbnail) {
+        this.thumbnail = thumbnail;
     }
 }

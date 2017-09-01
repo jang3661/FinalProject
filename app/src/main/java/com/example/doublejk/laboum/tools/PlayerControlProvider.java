@@ -1,6 +1,6 @@
-package com.example.doublejk.laboum;
+package com.example.doublejk.laboum.tools;
 
-import com.squareup.otto.Bus;
+import com.example.doublejk.laboum.util.CustomBus;
 
 /**
  * Created by doublejk on 2017-08-27.

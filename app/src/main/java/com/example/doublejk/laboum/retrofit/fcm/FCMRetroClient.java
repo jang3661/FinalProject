@@ -1,9 +1,10 @@
-package com.example.doublejk.laboum.retrofit;
+package com.example.doublejk.laboum.retrofit.fcm;
 
 import android.content.Context;
 import android.util.Log;
 
 import com.example.doublejk.laboum.firebase.FirebaseMessage;
+import com.example.doublejk.laboum.retrofit.RetroCallback;
 import com.google.gson.JsonObject;
 
 import java.util.concurrent.TimeUnit;

@@ -41,7 +41,7 @@
             </intent-filter>
         </service>
 
-        <activity android:name=".duplication.TestActivity">
+        <activity android:name=".test.TestActivity">
 
         </activity>
     </application>

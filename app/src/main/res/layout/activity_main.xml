@@ -28,6 +28,7 @@
                 android:gravity="top"
                 android:background="@color/mainToolbarColor"
                 app:layout_collapseMode="pin"
+                app:theme="@style/ToolbarColoredBackArrow"
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
                 app:titleTextColor="#FFF"
                 app:titleMarginTop="16dp" >

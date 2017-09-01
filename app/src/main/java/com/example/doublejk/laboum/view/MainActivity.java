@@ -1,38 +1,40 @@
 package com.example.doublejk.laboum.view;
 
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.MenuItem;
+import android.view.View;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.example.doublejk.laboum.R;
-import com.example.doublejk.laboum.SQLiteHelper;
+import com.example.doublejk.laboum.sqlite.SQLiteHelper;
 import com.example.doublejk.laboum.adapter.ViewPagerAdpater;
 import com.example.doublejk.laboum.model.Music;
 import com.example.doublejk.laboum.model.Playlist;
 import com.example.doublejk.laboum.model.Room;
 import com.example.doublejk.laboum.model.User;
-import com.example.doublejk.laboum.retrofit.FCMRetroClient;
-import com.example.doublejk.laboum.firebase.FirebaseMessage;
-import com.example.doublejk.laboum.retrofit.NodeRetroClient;
+import com.example.doublejk.laboum.retrofit.nodejs.NodeRetroClient;
 import com.example.doublejk.laboum.retrofit.RetroCallback;
+import com.example.doublejk.laboum.util.ViewAnimation;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class MainActivity extends AppCompatActivity implements HomeFragment.PlaylistsChangedListener,
-        NewPlaylistDialogFragment.onAddPlaylistListener, ViewPager.OnPageChangeListener{
+public class MainActivity extends AppCompatActivity implements TracksFragment.PlaylistsChangedListener,
+        NewPlaylistDialogFragment.onAddPlaylistListener, ViewPager.OnPageChangeListener, HomeFragment.ReplaceFrgmentListener{
     @BindView(R.id.toolbar) Toolbar toolbar;
     @BindView(R.id.toolbar_searchBtn) ImageButton searchBtn;
     @BindView(R.id.tab_layout) TabLayout tabLayout;
@@ -40,11 +42,14 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Play
     @BindView(R.id.collapsing_toolbar) CollapsingToolbarLayout collapsingToolbar;
     private static HashMap<String, Playlist> playlists;
     private static User user;
+    private TracksFragment tracksFragment;
     private SQLiteHelper sqliteHelper;
     private ViewPagerAdpater viewPagerAdpater;
     private ArrayList<Music> musics;
     private NodeRetroClient nodeRetroClient;
     private ArrayList<Room> rooms;
+    private boolean isHomeChanged; //홈화면 클릭했을때
+    private String titleName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,6 +108,7 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Play
         viewPagerAdpater.setPlaylist(playlists);
         viewPager.setAdapter(viewPagerAdpater);
         tabLayout.setupWithViewPager(viewPager);
+
     }
 
     public void getRoomList() {
@@ -179,9 +185,34 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Play
     }
 
     @Override
-    public void addPlaylist(Playlist playlist) {
-//        MyFragment myFragment = (MyFragment) viewPagerAdpater.instantiateItem(viewPager, 1);
-//        myFragment.addPlaylist(playlist);
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            getSupportFragmentManager().popBackStack();
+            restoreHomeFragment();
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed() {
+        int count = getSupportFragmentManager().getBackStackEntryCount();
+        if (count == 0) {
+            super.onBackPressed();
+        } else {
+            getSupportFragmentManager().popBackStack();
+            restoreHomeFragment();
+        }
+    }
+
+    public void restoreHomeFragment() {
+        isHomeChanged = false;
+        getSupportActionBar().setTitle("LaBoum");
+        getSupportActionBar().setIcon(R.drawable.main_icon);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        ViewAnimation.selectLayoutToTab(tracksFragment.getSelectingLayout(), getTabLayout());
+        HomeFragment homeFragment = (HomeFragment) viewPagerAdpater.instantiateItem(viewPager, 0);
+        homeFragment.getHideLayout().setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -190,9 +221,26 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Play
         MyFragment myFragment = (MyFragment) viewPagerAdpater.instantiateItem(viewPager, 1);
         myFragment.addPlaylist(playlist);
 
+        tracksFragment.setTitleList(sqliteHelper.selectPlaylistTitle());
+        tracksFragment.initAnimation();
+    }
+
+    @Override
+    public void onReplace(ArrayList<Music> musics, String name) {
+        //이건 일간순위 눌렀을때 이벤트임 다른 이벤트도 고려해야함
+        isHomeChanged = true;
+        titleName = name;
         HomeFragment homeFragment = (HomeFragment) viewPagerAdpater.instantiateItem(viewPager, 0);
-        homeFragment.setTitleList(sqliteHelper.selectPlaylistTitle());
-        homeFragment.initAnimation();
+        homeFragment.getHideLayout().setVisibility(View.GONE);
+        getSupportActionBar().setTitle(name); //이거 그때그때 바꿔줘야함
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(false);
+
+        tracksFragment = TracksFragment.newInstance(musics);
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        fragmentTransaction.replace(R.id.home_layout,tracksFragment);
+        fragmentTransaction.addToBackStack(null);
+        fragmentTransaction.commit();
     }
 
     @Override
@@ -202,6 +250,18 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Play
 
     @Override
     public void onPageSelected(int position) {
+        if(isHomeChanged) {
+            if(position != 0) {
+                getSupportActionBar().setTitle("LaBoum");
+                getSupportActionBar().setIcon(R.drawable.main_icon);
+                getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+                getSupportActionBar().setDisplayShowHomeEnabled(true);
+            }else {
+                getSupportActionBar().setTitle(titleName); //이거 그때그때 바꿔줘야함
+                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                getSupportActionBar().setDisplayShowHomeEnabled(false);
+            }
+        }
         if(position == 1) {
             Log.d("변화", "ㅎ자");
             MyFragment myFragment = (MyFragment) viewPagerAdpater.instantiateItem(viewPager, 1);
@@ -264,4 +324,6 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.Play
         super.onRestart();
         Log.d("메인!", "onRestart");
     }
+
+
 }

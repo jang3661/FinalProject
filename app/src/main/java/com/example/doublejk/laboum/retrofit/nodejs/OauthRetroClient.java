@@ -1,12 +1,11 @@
-package com.example.doublejk.laboum.retrofit;
+package com.example.doublejk.laboum.retrofit.nodejs;
 
 import android.content.Context;
 import android.util.Log;
 
-import com.example.doublejk.laboum.Oauth;
-import com.example.doublejk.laboum.firebase.FirebaseMessage;
+import com.example.doublejk.laboum.model.Oauth;
 import com.example.doublejk.laboum.model.AccessToken;
-import com.google.gson.JsonObject;
+import com.example.doublejk.laboum.retrofit.RetroCallback;
 
 import java.util.concurrent.TimeUnit;
 

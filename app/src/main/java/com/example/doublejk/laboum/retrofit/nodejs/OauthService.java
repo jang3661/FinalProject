@@ -1,4 +1,4 @@
-package com.example.doublejk.laboum.retrofit;
+package com.example.doublejk.laboum.retrofit.nodejs;
 
 import com.example.doublejk.laboum.model.AccessToken;
 import com.example.doublejk.laboum.model.User;
