@@ -3,6 +3,7 @@ package com.example.doublejk.laboum.view;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -14,6 +15,7 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.example.doublejk.laboum.R;
+import com.example.doublejk.laboum.tools.RecyclerItemClickListener;
 import com.example.doublejk.laboum.tools.ServerKey;
 import com.example.doublejk.laboum.adapter.HomeRecyclerAdapter;
 import com.example.doublejk.laboum.model.Music;
@@ -45,9 +47,9 @@ public class HomeFragment extends Fragment {
     private int pos;
     public final String KOREA_DAYRANK_ID = "PLFgquLnL59amBMs8p7NyAiHK40Mmn3ect";
     public final String KOREA_WEEKBESE_ID = "PLFgquLnL59akp3Cc6cj1S_4fQxPhdetsO";
-//    public final String[] bannerId = {"PLDcnymzs18LWrKzHmzrGH1JzLBqrHi3xQ", "PLFgquLnL59anNXuf1M87FT1O169Qt6-Lp", "PLH6pfBXQXHEC2uDmDy5oi3tHW6X8kZ2Jo",
-//    "PLVXq77mXV53-Np39jM456si2PeTrEm9Mj", "PLr8RdoI29cXIlkmTAQDgOuwBhDh3yJDBQ", "PLQog_FHUHAFUDDQPOTeAWSHwzFV1Zz5PZ"};
-//    public final String[] bannertxt = {"팝", "최신 뮤직 비디오", "힙합", "클래식", "락", "소울"};
+    public final String[] bannerId = {"PLDcnymzs18LWrKzHmzrGH1JzLBqrHi3xQ", "PLFgquLnL59anNXuf1M87FT1O169Qt6-Lp", "PLH6pfBXQXHEC2uDmDy5oi3tHW6X8kZ2Jo",
+    "PLVXq77mXV53-Np39jM456si2PeTrEm9Mj", "PLr8RdoI29cXIlkmTAQDgOuwBhDh3yJDBQ", "PLQog_FHUHAFUDDQPOTeAWSHwzFV1Zz5PZ"};
+    public final String[] bannertxt = {"팝", "최신 뮤직 비디오", "힙합", "클래식", "락", "소울"};
 
     public HomeFragment() {
     }
@@ -85,16 +87,16 @@ public class HomeFragment extends Fragment {
         gridLayoutManager = new GridLayoutManager(getActivity(), 2);
         recyclerView.setLayoutManager(gridLayoutManager);
 
-//        recyclerView.addOnItemTouchListener(new RecyclerItemClickListener(getContext(),
-//                recyclerView, new RecyclerItemClickListener.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(View view, int position) {
-//                pos = position;
-//                getPopularTraks(bannerId[position]);
-//            }
-//            @Override
-//            public void onLongItemClick(View view, int position) { }
-//        }));
+        recyclerView.addOnItemTouchListener(new RecyclerItemClickListener(getContext(),
+                recyclerView, new RecyclerItemClickListener.OnItemClickListener() {
+            @Override
+            public void onItemClick(View view, int position) {
+                pos = position;
+                getPopularTraks(bannerId[position]);
+            }
+            @Override
+            public void onLongItemClick(View view, int position) { }
+        }));
 
 
         dayRankLayout = (LinearLayout) v.findViewById(R.id.home_dayrank_layout);
@@ -109,7 +111,7 @@ public class HomeFragment extends Fragment {
         genreBanner = new ArrayList<>();
         getHomeBanner(KOREA_DAYRANK_ID, dayRankImg);
         getHomeBanner(KOREA_WEEKBESE_ID, weekBestImg);
-//        getHomeBanner(bannerId[0]);
+        getHomeBanner(bannerId[0]);
         return v;
     }
 
@@ -145,13 +147,13 @@ public class HomeFragment extends Fragment {
             public void onSuccess(int code, Object receivedData) {
                 banner = (String) receivedData;
                 genreBanner.add(banner);
-//                if(genreBanner.size() == 6) {
-//                    homeRecyclerAdapter = new HomeRecyclerAdapter(getContext(), genreBanner, bannertxt);
-//                    recyclerView.setAdapter(homeRecyclerAdapter);
-//                    recyclerView.setItemAnimator(new DefaultItemAnimator());
-//                }else {
-//                    getHomeBanner(bannerId[genreBanner.size()]);
-//                }
+                if(genreBanner.size() == 6) {
+                    homeRecyclerAdapter = new HomeRecyclerAdapter(getContext(), genreBanner, bannertxt);
+                    recyclerView.setAdapter(homeRecyclerAdapter);
+                    recyclerView.setItemAnimator(new DefaultItemAnimator());
+                }else {
+                    getHomeBanner(bannerId[genreBanner.size()]);
+                }
             }
 
             @Override
@@ -167,16 +169,13 @@ public class HomeFragment extends Fragment {
             @Override
             public void onSuccess(int code, Object receivedData) {
                 musics = (ArrayList<Music>) receivedData;
-                if(id.equals(KOREA_DAYRANK_ID)) {
+                if (id.equals(KOREA_DAYRANK_ID)) {
                     mCallback.onReplace(musics, "일간순위 40 KR");
-                }
-                else if(id.equals(KOREA_WEEKBESE_ID)) {
+                } else if (id.equals(KOREA_WEEKBESE_ID)) {
                     mCallback.onReplace(musics, "주간베스트 40 KR");
+                } else {
+                    mCallback.onReplace(musics, bannertxt[pos]);
                 }
-//                }else {
-//                    mCallback.onReplace(musics, bannertxt[pos]);
-//                }
-
             }
 
             @Override

@@ -11,6 +11,7 @@ import android.support.design.widget.CoordinatorLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.RecyclerView;
+import android.text.Layout;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -41,6 +42,7 @@ import com.example.doublejk.laboum.model.Room;
 import com.example.doublejk.laboum.retrofit.fcm.FCMRetroClient;
 import com.example.doublejk.laboum.retrofit.nodejs.NodeRetroClient;
 import com.example.doublejk.laboum.retrofit.RetroCallback;
+import com.example.doublejk.laboum.tools.ServerKey;
 import com.example.doublejk.laboum.util.ColorConverter;
 import com.example.doublejk.laboum.util.CustomEditText;
 import com.example.doublejk.laboum.util.DimensionConverter;
@@ -80,7 +82,6 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
     @BindView(R.id.player_durationTv) TextView durationTv;
     @BindView(R.id.player_playlist_name) TextView playlistName;
     @BindView(R.id.player_user_name) TextView userName;
-    @BindView(R.id.player_chatting_header) LinearLayout chattingHeaderLayout;
     @BindView(R.id.player_chatting_input) LinearLayout chattingInputLayout;
     @BindView(R.id.player_chatting_content) TextView chattingContentTv;
     @BindView(R.id.player_chatting_edit) CustomEditText chattingEdit;
@@ -103,7 +104,7 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
     private NodeRetroClient nodeRetroClient;
     private Room myRoom;
     private FCMRetroClient fcmRetroClient;
-    static final String YOUTUBE_KEY = "AIzaSyBwqHpHu9AwlEfiIVKcJ4rsBWOfgP6WmB0";
+    //static final String YOUTUBE_KEY = "AIzaSyBwqHpHu9AwlEfiIVKcJ4rsBWOfgP6WmB0";
     private final int ORDINARY_PLAY = 0;
     private final int REPEAT_PLAY = 1;
     private final int ONE_REPEAT_PLAY = 2;
@@ -123,13 +124,13 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         initView();
         backGroundColorInit();
 
+        //recyclerview click listener
         recyclerView.addOnItemTouchListener(new RecyclerItemClickListener(getApplicationContext(),
                 recyclerView, new RecyclerItemClickListener.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
                 if(isMaster || commonUser) {
                     if (isMaster) {
-                        Log.d("북", "ㅇㅇ");
                         postGroupMsg(new FirebaseMessage("/topics/" + playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')), "itemClick", position, 0));
                     }
                     doTouchPlayer = true;
@@ -142,11 +143,14 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
             public void onLongItemClick(View view, int position) {
             }
         }));
+        //chatting transmit
         chattingEdit.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 switch (actionId) {
                     case EditorInfo.IME_ACTION_SEND:
+                        //chattingContentTv.append(chattingEdit.getText() + "\n");
+                        appendTextAndScroll(chattingEdit.getText().toString());
                         postGroupMsg(new FirebaseMessage("/topics/" + playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')) + "chatting", "chatting", chattingEdit.getText().toString()));
                         chattingEdit.getText().clear();
                         return true;
@@ -155,7 +159,7 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
             }
         });
 
-        //채팅edit에서 백키 클릭 이벤트
+        //chatting softkeyboard backpress listener
         chattingEdit.setKeyImeChangeListener(new CustomEditText.KeyImeChange() {
             @Override
             public void onKeyIme(int keyCode, KeyEvent event) {
@@ -165,7 +169,7 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
                 }
             }
         });
-        //채팅edit 클릭 이벤트
+        //chatting softkeyboard up listener
         chattingEdit.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -183,7 +187,7 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         super.onWindowFocusChanged(hasFocus);
             if(!isInitChatLyaoutSize) {
                 chattingContentHeight = playerLayout.getHeight() -
-                        (youTubePlayerView.getHeight() + infoLayout.getHeight() + chattingHeaderLayout.getHeight() + chattingInputLayout.getHeight());
+                        (youTubePlayerView.getHeight() + infoLayout.getHeight() + chattingInputLayout.getHeight());
                 chattingContentTv.setHeight(chattingContentHeight);
                 isInitChatLyaoutSize = true;
             }
@@ -194,12 +198,8 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         seekBar.setOnSeekBarChangeListener(this);
 
         bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
-
         chattingContentTv.setMovementMethod(new ScrollingMovementMethod());
-
-
         inputMethodManager = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-
 
         nodeRetroClient = NodeRetroClient.getInstance(this).createBaseApi();
         fcmRetroClient = FCMRetroClient.getInstance(this).createBaseApi();
@@ -214,7 +214,85 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         recyclerView.setAdapter(playerRecyclerAdapter);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
 
-        youTubePlayerView.initialize(YOUTUBE_KEY, this);
+        youTubePlayerView.initialize(ServerKey.Key, this);
+    }
+
+    public void backGroundColorInit() {
+        int color = changeColor(playingPos);
+        int darkColor = ColorConverter.darker(color, 0.8f);
+        int lightColor = ColorConverter.lighter(color, 0.15f);
+
+        window = getWindow();
+        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+
+        window.setStatusBarColor(darkColor);
+        controllerLayout.setBackgroundColor(darkColor);
+        infoLayout.setBackgroundColor(darkColor);
+        bottomSheet.setBackgroundColor(lightColor);
+        chattingInputLayout.setBackgroundColor(color);
+        playerLayout.setBackgroundColor(color);
+        if(musics.size() < 5) {
+            divider.setBackgroundColor(lightColor);
+            divider.setVisibility(View.VISIBLE);
+        } else {
+            //나중에 다른곳도 추가해줘야한다. 재생목록 추가삭제할때
+            recyclerView.setPadding(0, 0, 0, DimensionConverter.dpToPx(86));
+        }
+        playlistName.setText(playlist.getTitle());
+        userName.setText(playlist.getUserName());
+    }
+
+    public int changeColor(int position) {
+        if(musics.get(position).getPaletteColor().getDarkVibrantRgb() != 0) {
+            return musics.get(position).getPaletteColor().getDarkVibrantRgb();
+        }else if(musics.get(position).getPaletteColor().getDarkMutedRgb() != 0) {
+            return musics.get(position).getPaletteColor().getDarkMutedRgb();
+        }else {
+            return Color.rgb(69, 90, 100);
+        }
+    }
+
+    public void updateData(int position) {
+        int color = changeColor(position);
+        int darkColor = ColorConverter.darker(color, 0.8f);
+        int lightColor = ColorConverter.lighter(color, 0.15f);
+
+        recyclerView.scrollToPosition(position);
+        playerRecyclerAdapter.setPlayingMusicPostion(position);
+        playerRecyclerAdapter.notifyDataSetChanged();
+
+        window.setStatusBarColor(darkColor);
+        controllerLayout.setBackgroundColor(darkColor);
+        infoLayout.setBackgroundColor(darkColor);
+        playerLayout.setBackgroundColor(color);
+        bottomSheet.setBackgroundColor(lightColor);
+        chattingInputLayout.setBackgroundColor(color);
+        //divider 색변경
+        if(musics.size() < 5) {
+            divider.setBackgroundColor(lightColor);
+        }
+        else {
+            divider.setVisibility(View.GONE);
+        }
+    }
+
+    @Override
+    public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean b) {
+        Log.d("onInitializationSuccess", "한번만?");
+        this.youTubePlayer = youTubePlayer;
+        youTubePlayer.setPlayerStyle(YouTubePlayer.PlayerStyle.CHROMELESS);
+        youTubePlayer.setPlaylistEventListener(myPlaylistEventListener);
+        youTubePlayer.setPlayerStateChangeListener(myPlayerStateChangeListener);
+        youTubePlayer.setPlaybackEventListener(myPlaybackEventListener);
+        youTubePlayer.setOnFullscreenListener(this);
+        //youTubePlayer.setFullscreenControlFlags(youTubePlayer.FULLSCREEN_FLAG_CONTROL_SYSTEM_UI);
+
+        youTubePlayer.loadVideos(videoIds, playingPos, playingCurrentMillis);
+    }
+    @Override
+    public void onInitializationFailure(YouTubePlayer.Provider provider, YouTubeInitializationResult youTubeInitializationResult) {
+        Log.d("실패이유", youTubeInitializationResult.toString());
     }
 
     public void postGroupMsg(FirebaseMessage firebaseMessage) {
@@ -308,9 +386,25 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         }
     }
 
+    public void appendTextAndScroll(String text)
+    {
+        if(chattingContentTv != null){
+            chattingContentTv.append(text + "\n");
+            final Layout layout = chattingContentTv.getLayout();
+            if(layout != null){
+                int scrollDelta = layout.getLineBottom(chattingContentTv.getLineCount() - 1)
+                        - chattingContentTv.getScrollY() - chattingContentTv.getHeight();
+                if(scrollDelta > 0)
+                    chattingContentTv.scrollBy(0, scrollDelta);
+            }
+        }
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
+
+        timer = new Timer();
         SharedPreferences sf = getSharedPreferences("pref", 0);
         stateFlag = sf.getInt("stateFlag", 0);
         if (stateFlag == ORDINARY_PLAY) {
@@ -424,80 +518,8 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
         }
     }
 
-    public void backGroundColorInit() {
-        int color = changeColor(playingPos);
-        int darkColor = ColorConverter.darker(color, 0.8f);
-        int lightColor = ColorConverter.lighter(color, 0.15f);
-
-        window = getWindow();
-        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-
-        window.setStatusBarColor(darkColor);
-        controllerLayout.setBackgroundColor(darkColor);
-        infoLayout.setBackgroundColor(darkColor);
-        playerLayout.setBackgroundColor(color);
-        if(musics.size() < 5) {
-            divider.setBackgroundColor(lightColor);
-            divider.setVisibility(View.VISIBLE);
-        } else {
-            //나중에 다른곳도 추가해줘야한다. 재생목록 추가삭제할때
-            recyclerView.setPadding(0, 0, 0, DimensionConverter.dpToPx(72));
-        }
-        playlistName.setText(playlist.getTitle());
-        userName.setText(playlist.getUserName());
-    }
-    public int changeColor(int position) {
-        if(musics.get(position).getPaletteColor().getDarkVibrantRgb() != 0) {
-            return musics.get(position).getPaletteColor().getDarkVibrantRgb();
-        }else if(musics.get(position).getPaletteColor().getDarkMutedRgb() != 0) {
-            return musics.get(position).getPaletteColor().getDarkMutedRgb();
-        }else {
-            return Color.rgb(69, 90, 100);
-        }
-    }
-    public void updateData(int position) {
-        int color = changeColor(position);
-        int darkColor = ColorConverter.darker(color, 0.8f);
-        int lightColor = ColorConverter.lighter(color, 0.15f);
-
-        recyclerView.scrollToPosition(position);
-        playerRecyclerAdapter.setPlayingMusicPostion(position);
-        playerRecyclerAdapter.notifyDataSetChanged();
-
-        window.setStatusBarColor(darkColor);
-        controllerLayout.setBackgroundColor(darkColor);
-        infoLayout.setBackgroundColor(darkColor);
-        playerLayout.setBackgroundColor(color);
-        //divider 색변경
-        if(musics.size() < 5) {
-            divider.setBackgroundColor(lightColor);
-        }
-        else {
-            divider.setVisibility(View.GONE);
-        }
-    }
-
-    @Override
-    public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean b) {
-        Log.d("onInitializationSuccess", "한번만?");
-        this.youTubePlayer = youTubePlayer;
-        youTubePlayer.setPlayerStyle(YouTubePlayer.PlayerStyle.CHROMELESS);
-        youTubePlayer.setPlaylistEventListener(myPlaylistEventListener);
-        youTubePlayer.setPlayerStateChangeListener(myPlayerStateChangeListener);
-        youTubePlayer.setPlaybackEventListener(myPlaybackEventListener);
-        youTubePlayer.setOnFullscreenListener(this);
-        //youTubePlayer.setFullscreenControlFlags(youTubePlayer.FULLSCREEN_FLAG_CONTROL_SYSTEM_UI);
-
-        timer = new Timer();
-        youTubePlayer.loadVideos(videoIds, playingPos, playingCurrentMillis);
-    }
     public void showLog(String s) {
         Log.d(s, "보여라");
-    }
-    @Override
-    public void onInitializationFailure(YouTubePlayer.Provider provider, YouTubeInitializationResult youTubeInitializationResult) {
-        Log.d("실패이유", youTubeInitializationResult.toString());
     }
 
     @Override
@@ -729,14 +751,18 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
             playBtn.setImageResource(R.drawable.pausebtn);
             seekBar.setMax(youTubePlayer.getDurationMillis());
             durationTv.setText(convertTime(youTubePlayer.getDurationMillis()));
-            //Log.d("sss", "" + seekBar.getProgress());
             if(isSeekBarReseted) {
-                Log.d("타임", "onPlaying");
                 timerTask = timerTaskMaker();
                 timer.schedule(timerTask, 500, 300);
                 isSeekBarReseted = false;
             } else {
                 timerTask = timerTaskMaker();
+                if(timer == null) {
+                    Log.d("timer", "null");
+                }else {
+                    Log.d("timer", "notnull");
+
+                }
                 timer.schedule(timerTask, 0, 300);
             }
         }
@@ -844,9 +870,6 @@ public class PlayerActivity extends YouTubeBaseActivity implements YouTubePlayer
     protected void onDestroy() {
         PlayerControlProvider.getInstance().unregister(this);
         super.onDestroy();
-        if(timer != null) {
-            timer.cancel();
-        }
         youTubePlayer.release();
         FirebaseMessaging.getInstance().unsubscribeFromTopic(playlist.getUserEmail().substring(0, playlist.getUserEmail().indexOf('@')));
     }
