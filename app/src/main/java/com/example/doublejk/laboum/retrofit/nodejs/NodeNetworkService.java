@@ -28,10 +28,8 @@ import retrofit2.http.Query;
  */
 
 public interface NodeNetworkService {
-    //final String Base_URL = "http://192.168.10.102:3000/";
+    final String Base_URL = "http://192.168.10.105:3000/";
     //final String  Base_URL = "http://1b1e6b75.ngrok.io/";
-    final String Base_URL = "http://e9c29e20.ngrok.io";
-
 
     @POST("login")
     Call<String> postLogin(@Body User user);

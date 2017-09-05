@@ -24,14 +24,14 @@ public class FirebaseMessage {
     }
 
     //메세지 요청용
-    public FirebaseMessage(String to, String action, String token) {
+    public FirebaseMessage(String to, String action, String content) {
         this.to = to;
-        this.data = new Data(action, token);
+        this.data = new Data(action, content);
     }
 
     public class Data {
         private String action;
-        private String token;
+        private String content; // token or message
         private int playingMusicIndex;
         private int currentMillis;
 
@@ -39,9 +39,9 @@ public class FirebaseMessage {
             this.action = action;
 
         }
-        public Data(String action, String token) {
+        public Data(String action, String content) {
             this.action = action;
-            this.token = token;
+            this.content = content;
         }
         public Data(String action, int playingMusicIndex, int currentMillis) {
             this.action = action;

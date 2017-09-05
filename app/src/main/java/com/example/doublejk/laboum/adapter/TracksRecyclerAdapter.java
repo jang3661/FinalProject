@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.BitmapImageViewTarget;
 import com.example.doublejk.laboum.R;
@@ -60,7 +61,7 @@ public class TracksRecyclerAdapter extends RecyclerView.Adapter<PopularVideoView
     @Override
     public void onBindViewHolder(PopularVideoViewHolder holder, final int position) {
         Log.d("onBindVIewHolder", "" + position + "얼마나오냐");
-        Glide.with(context).load(musics.get(position).getImgUrl()).asBitmap()
+        Glide.with(context).load(musics.get(position).getImgUrl()).asBitmap().diskCacheStrategy(DiskCacheStrategy.RESULT)
                 .fitCenter().into(new BitmapImageViewTarget(holder.getPopular_img()) {
             @Override
             public void onResourceReady(Bitmap bitmap, GlideAnimation glideAnimation) {

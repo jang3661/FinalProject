@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.doublejk.laboum.model.Playlist;
 import com.example.doublejk.laboum.R;
 import com.example.doublejk.laboum.viewholder.MyTabViewHolder;
@@ -38,7 +39,7 @@ public class MyTabRecyclerAdapter extends RecyclerView.Adapter<MyTabViewHolder> 
     @Override
     public void onBindViewHolder(MyTabViewHolder holder, int position) {
         if(playlists.get(position).getMusics().size() != 0) {
-            Glide.with(context).load(playlists.get(position).getMusics().get(0).getImgUrl()).fitCenter().into(holder.getPlaylistIcon());
+            Glide.with(context).load(playlists.get(position).getMusics().get(0).getImgUrl()).diskCacheStrategy(DiskCacheStrategy.RESULT).fitCenter().into(holder.getPlaylistIcon());
         }else {
             Glide.with(context).load(R.drawable.music_default).fitCenter().into(holder.getPlaylistIcon());
         }

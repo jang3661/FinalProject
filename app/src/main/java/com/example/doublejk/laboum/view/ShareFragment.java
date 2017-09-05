@@ -88,6 +88,8 @@ public class ShareFragment extends Fragment {
             public void onItemClick(View view, int position) {
                 postEnterRoom(rooms.get(position));
                 FirebaseMessaging.getInstance().subscribeToTopic(rooms.get(position).getUserEmail().substring(0, rooms.get(position).getUserEmail().indexOf('@')));
+                FirebaseMessaging.getInstance().subscribeToTopic(rooms.get(position).getUserEmail().substring(0, rooms.get(position).getUserEmail().indexOf('@')) + "chatting");
+
                 //playlist의 현재재생상태를 보내줘야함
             }
 
@@ -101,7 +103,6 @@ public class ShareFragment extends Fragment {
 
     @Subscribe
     public void playPlaylist(PushEvent mPushEvent) {
-        Log.d("버스", "" + mPushEvent.getPushData().get("action") + " " + mPushEvent.getPushData().get("playingMusicIndex") + " " + mPushEvent.getPushData().get("currentMillis"));
         if(mPushEvent.getPushData().get("action").equals("reply")) {
             Intent intent = new Intent(getActivity(), PlayerActivity.class);
             intent.putExtra("playlist", playlist);
@@ -155,7 +156,6 @@ public class ShareFragment extends Fragment {
     }
 
     public void updateRoomList(ArrayList<Room> rooms) {
-        Log.d("베그", "" + rooms.size());
         this.rooms = rooms;
         shareRecyclerAdapter.setRooms(rooms);
         shareRecyclerAdapter.notifyDataSetChanged();

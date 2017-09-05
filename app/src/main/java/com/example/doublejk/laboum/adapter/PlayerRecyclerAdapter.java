@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.doublejk.laboum.model.Music;
 import com.example.doublejk.laboum.R;
 import com.example.doublejk.laboum.util.ColorConverter;
@@ -48,8 +49,8 @@ public class PlayerRecyclerAdapter extends RecyclerView.Adapter<PlaylistViewHold
             color = musics.get(getPlayingMusicPostion()).getPaletteColor().getDarkMutedRgb();
             lightColor = ColorConverter.lighter(musics.get(getPlayingMusicPostion()).getPaletteColor().getDarkMutedRgb(), 0.15f);
         }
-        Glide.with(context).load(musics.get(position).getImgUrl()).fitCenter().into(holder.getMusicImg());
-        Glide.with(context).load(R.drawable.optionmenu).fitCenter().into(holder.getMusicSettingBtn());
+        Glide.with(context).load(musics.get(position).getImgUrl()).diskCacheStrategy(DiskCacheStrategy.RESULT).fitCenter().into(holder.getMusicImg());
+        Glide.with(context).load(R.drawable.optionmenu).diskCacheStrategy(DiskCacheStrategy.RESULT).fitCenter().into(holder.getMusicSettingBtn());
         holder.getMusicTitle().setText(musics.get(position).getTitle());
         if(position == getPlayingMusicPostion()) {
             holder.getItemView().setBackgroundColor(lightColor);
